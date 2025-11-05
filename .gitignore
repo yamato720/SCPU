@@ -1,0 +1,58 @@
+# Vivado generated files and directories
+*.jou
+*.log
+*.str
+*.rpt
+*.pb
+*.wdb
+*.dcp
+*.ltx
+*.html
+*.xml
+*.csv
+
+# Vivado caches and temp directories
+.Xil/
+.cache/
+.ipcache/
+.hw/
+.sim/
+.runs/
+.gen/
+
+# Project-specific generated dirs at workspace root
+/SCPU.runs/
+/SCPU.gen/
+/SCPU.hw/
+/SCPU.sim/
+/SCPU.ip_user_files/
+
+# Project-specific generated dirs under project folder
+/SCPU/SCPU.runs/
+/SCPU/SCPU.gen/
+/SCPU/SCPU.hw/
+/SCPU/SCPU.sim/
+/SCPU/SCPU.ip_user_files/
+
+# Block design generated subdirs
+**/sources_1/bd/*/ip/
+**/sources_1/bd/*/hw_handoff/
+**/sources_1/bd/*/sim/
+**/sources_1/bd/*/synth/
+**/sources_1/bd/*/ipauto/
+**/bd/*/ip/*
+
+# Simulator scripts and outputs
+**/sim_scripts/
+**/xsim/
+**/modelsim/
+**/questa/
+**/riviera/
+**/vcs/
+**/xcelium/
+**/activehdl/
+
+# Misc/editor
+*.swp
+*~
+.DS_Store

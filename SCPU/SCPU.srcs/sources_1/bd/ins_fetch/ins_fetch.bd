@@ -1,0 +1,241 @@
+{
+  "design": {
+    "design_info": {
+      "boundary_crc": "0x59F98A61A184AF23",
+      "device": "xc7a100tcsg324-1",
+      "gen_directory": "../../../../SCPU.gen/sources_1/bd/ins_fetch",
+      "name": "ins_fetch",
+      "rev_ctrl_bd_flag": "RevCtrlBdOff",
+      "synth_flow_mode": "Hierarchical",
+      "tool_version": "2022.2"
+    },
+    "design_tree": {
+      "Decoder_0": "",
+      "Ins_buffer_0": ""
+    },
+    "ports": {
+      "clk": {
+        "direction": "I"
+      },
+      "rst": {
+        "direction": "I"
+      },
+      "pc_in": {
+        "direction": "I",
+        "left": "31",
+        "right": "0"
+      },
+      "base_in": {
+        "direction": "I",
+        "left": "31",
+        "right": "0"
+      },
+      "opcode": {
+        "direction": "O",
+        "left": "6",
+        "right": "0"
+      },
+      "rd": {
+        "direction": "O",
+        "left": "4",
+        "right": "0"
+      },
+      "rs1": {
+        "direction": "O",
+        "left": "4",
+        "right": "0"
+      },
+      "rs2": {
+        "direction": "O",
+        "left": "4",
+        "right": "0"
+      },
+      "funct3": {
+        "direction": "O",
+        "left": "2",
+        "right": "0"
+      },
+      "funct7": {
+        "direction": "O",
+        "left": "6",
+        "right": "0"
+      }
+    },
+    "components": {
+      "Decoder_0": {
+        "vlnv": "xilinx.com:module_ref:Decoder:1.0",
+        "xci_name": "ins_fetch_Decoder_0_0",
+        "xci_path": "ip/ins_fetch_Decoder_0_0/ins_fetch_Decoder_0_0.xci",
+        "inst_hier_path": "Decoder_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "Decoder",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "clk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "ASSOCIATED_RESET": {
+                "value": "rst",
+                "value_src": "constant"
+              }
+            }
+          },
+          "rst": {
+            "type": "rst",
+            "direction": "I"
+          },
+          "instruction": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "opcode": {
+            "direction": "O",
+            "left": "6",
+            "right": "0"
+          },
+          "rd": {
+            "direction": "O",
+            "left": "4",
+            "right": "0"
+          },
+          "rs1": {
+            "direction": "O",
+            "left": "4",
+            "right": "0"
+          },
+          "rs2": {
+            "direction": "O",
+            "left": "4",
+            "right": "0"
+          },
+          "funct3": {
+            "direction": "O",
+            "left": "2",
+            "right": "0"
+          },
+          "funct7": {
+            "direction": "O",
+            "left": "6",
+            "right": "0"
+          }
+        }
+      },
+      "Ins_buffer_0": {
+        "vlnv": "xilinx.com:module_ref:Ins_buffer:1.0",
+        "xci_name": "ins_fetch_Ins_buffer_0_0",
+        "xci_path": "ip/ins_fetch_Ins_buffer_0_0/ins_fetch_Ins_buffer_0_0.xci",
+        "inst_hier_path": "Ins_buffer_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "Ins_buffer",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "clk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "ASSOCIATED_RESET": {
+                "value": "rst",
+                "value_src": "constant"
+              }
+            }
+          },
+          "rst": {
+            "type": "rst",
+            "direction": "I"
+          },
+          "pc_in": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "base_in": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "ins_out": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          }
+        }
+      }
+    },
+    "nets": {
+      "Decoder_0_funct3": {
+        "ports": [
+          "Decoder_0/funct3",
+          "funct3"
+        ]
+      },
+      "Decoder_0_funct7": {
+        "ports": [
+          "Decoder_0/funct7",
+          "funct7"
+        ]
+      },
+      "Decoder_0_opcode": {
+        "ports": [
+          "Decoder_0/opcode",
+          "opcode"
+        ]
+      },
+      "Decoder_0_rd": {
+        "ports": [
+          "Decoder_0/rd",
+          "rd"
+        ]
+      },
+      "Decoder_0_rs1": {
+        "ports": [
+          "Decoder_0/rs1",
+          "rs1"
+        ]
+      },
+      "Decoder_0_rs2": {
+        "ports": [
+          "Decoder_0/rs2",
+          "rs2"
+        ]
+      },
+      "Ins_buffer_0_ins_out": {
+        "ports": [
+          "Ins_buffer_0/ins_out",
+          "Decoder_0/instruction"
+        ]
+      },
+      "base_in_1": {
+        "ports": [
+          "base_in",
+          "Ins_buffer_0/base_in"
+        ]
+      },
+      "clk_1": {
+        "ports": [
+          "clk",
+          "Decoder_0/clk",
+          "Ins_buffer_0/clk"
+        ]
+      },
+      "pc_in_1": {
+        "ports": [
+          "pc_in",
+          "Ins_buffer_0/pc_in"
+        ]
+      },
+      "rst_1": {
+        "ports": [
+          "rst",
+          "Decoder_0/rst",
+          "Ins_buffer_0/rst"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"2.0",
+   "Default View_TopLeft":"-143,-28",
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 7.0r4  2019-12-20 bk=1.5203 VDI=41 GEI=36 GUI=JA:10.0 TLS
+#  -string -flagsOSRD
+preplace port port-id_clk -pg 1 -lvl 0 -x 0 -y 290 -defaultsOSRD
+preplace port port-id_rst -pg 1 -lvl 0 -x 0 -y 380 -defaultsOSRD
+preplace portBus pc_in -pg 1 -lvl 0 -x 0 -y 20 -defaultsOSRD
+preplace portBus base_in -pg 1 -lvl 0 -x 0 -y 50 -defaultsOSRD
+preplace portBus opcode -pg 1 -lvl 3 -x 970 -y 230 -defaultsOSRD
+preplace portBus rd -pg 1 -lvl 3 -x 970 -y 260 -defaultsOSRD
+preplace portBus rs1 -pg 1 -lvl 3 -x 970 -y 300 -defaultsOSRD
+preplace portBus rs2 -pg 1 -lvl 3 -x 970 -y 330 -defaultsOSRD
+preplace portBus funct3 -pg 1 -lvl 3 -x 970 -y 380 -defaultsOSRD
+preplace portBus funct7 -pg 1 -lvl 3 -x 970 -y 420 -defaultsOSRD
+preplace inst Decoder_0 -pg 1 -lvl 2 -x 770 -y 360 -defaultsOSRD
+preplace inst Ins_buffer_0 -pg 1 -lvl 1 -x 460 -y 120 -defaultsOSRD
+preplace netloc clk_1 1 0 2 30 340 N
+preplace netloc rst_1 1 0 2 40 360 N
+preplace netloc pc_in_1 1 0 1 50 20n
+preplace netloc base_in_1 1 0 1 20 50n
+preplace netloc Ins_buffer_0_ins_out 1 1 1 600 120n
+preplace netloc Decoder_0_opcode 1 2 1 920 230n
+preplace netloc Decoder_0_rd 1 2 1 930 260n
+preplace netloc Decoder_0_rs1 1 2 1 940 300n
+preplace netloc Decoder_0_rs2 1 2 1 950 330n
+preplace netloc Decoder_0_funct3 1 2 1 930 380n
+preplace netloc Decoder_0_funct7 1 2 1 940 410n
+levelinfo -pg 1 0 460 770 970
+pagesize -pg 1 -db -bbox -sgen -140 -30 1100 470
+"
+}
+

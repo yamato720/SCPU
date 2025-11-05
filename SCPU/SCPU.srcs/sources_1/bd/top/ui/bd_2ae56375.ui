@@ -1,0 +1,29 @@
+{
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"1.47718",
+   "Default View_TopLeft":"-43,-305",
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 7.0r4  2019-12-20 bk=1.5203 VDI=41 GEI=36 GUI=JA:10.0 TLS
+#  -string -flagsOSRD
+preplace port port-id_clk -pg 1 -lvl 0 -x -460 -y -210 -defaultsOSRD
+preplace port port-id_rst -pg 1 -lvl 0 -x -460 -y -180 -defaultsOSRD
+preplace inst Registers_0 -pg 1 -lvl 2 -x 580 -y 280 -defaultsOSRD
+preplace inst Ins_buffer_0 -pg 1 -lvl 1 -x 0 -y 30 -defaultsOSRD
+preplace inst Decoder_0 -pg 1 -lvl 1 -x 0 -y 260 -defaultsOSRD
+preplace inst ALU_0 -pg 1 -lvl 3 -x 1000 -y 270 -defaultsOSRD
+preplace inst Opcode_ctrl_0 -pg 1 -lvl 2 -x 580 -y -90 -defaultsOSRD
+preplace netloc Registers_0_read_data1 1 2 1 740 260n
+preplace netloc Registers_0_read_data2 1 2 1 740 280n
+preplace netloc clk_1 1 0 2 -430 150 170
+preplace netloc rst_1 1 0 3 -440 140 180 160 740
+preplace netloc Ins_buffer_0_ins_out 1 0 2 -420 120 150
+preplace netloc Decoder_0_rs1 1 1 1 180 250n
+preplace netloc Decoder_0_rs2 1 1 1 150 270n
+preplace netloc Decoder_0_opcode 1 1 1 160 -90n
+preplace netloc Decoder_0_rd 1 1 1 170 230n
+preplace netloc Opcode_ctrl_0_reg_write 1 1 2 190 30 740
+levelinfo -pg 1 -460 0 580 1000 1160
+pagesize -pg 1 -db -bbox -sgen -530 -230 1160 480
+"
+}
+0
