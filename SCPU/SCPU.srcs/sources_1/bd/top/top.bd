@@ -10,11 +10,11 @@
       "tool_version": "2022.2"
     },
     "design_tree": {
-      "Registers_0": "",
-      "Ins_buffer_0": "",
       "Decoder_0": "",
       "ALU_0": "",
-      "Opcode_ctrl_0": ""
+      "Opcode_ctrl_0": "",
+      "Registers_0": "",
+      "Ins_buffer_0": ""
     },
     "ports": {
       "clk": {
@@ -25,108 +25,6 @@
       }
     },
     "components": {
-      "Registers_0": {
-        "vlnv": "xilinx.com:module_ref:Registers:1.0",
-        "xci_name": "top_Registers_0_0",
-        "xci_path": "ip/top_Registers_0_0/top_Registers_0_0.xci",
-        "inst_hier_path": "Registers_0",
-        "reference_info": {
-          "ref_type": "hdl",
-          "ref_name": "Registers",
-          "boundary_crc": "0x0"
-        },
-        "ports": {
-          "clk": {
-            "type": "clk",
-            "direction": "I",
-            "parameters": {
-              "ASSOCIATED_RESET": {
-                "value": "rst",
-                "value_src": "constant"
-              }
-            }
-          },
-          "rst": {
-            "type": "rst",
-            "direction": "I"
-          },
-          "reg_write": {
-            "direction": "I"
-          },
-          "read_reg1": {
-            "direction": "I",
-            "left": "4",
-            "right": "0"
-          },
-          "read_reg2": {
-            "direction": "I",
-            "left": "4",
-            "right": "0"
-          },
-          "write_reg": {
-            "direction": "I",
-            "left": "4",
-            "right": "0"
-          },
-          "write_data": {
-            "direction": "I",
-            "left": "31",
-            "right": "0"
-          },
-          "read_data1": {
-            "direction": "O",
-            "left": "31",
-            "right": "0"
-          },
-          "read_data2": {
-            "direction": "O",
-            "left": "31",
-            "right": "0"
-          }
-        }
-      },
-      "Ins_buffer_0": {
-        "vlnv": "xilinx.com:module_ref:Ins_buffer:1.0",
-        "xci_name": "top_Ins_buffer_0_0",
-        "xci_path": "ip/top_Ins_buffer_0_0/top_Ins_buffer_0_0.xci",
-        "inst_hier_path": "Ins_buffer_0",
-        "reference_info": {
-          "ref_type": "hdl",
-          "ref_name": "Ins_buffer",
-          "boundary_crc": "0x0"
-        },
-        "ports": {
-          "clk": {
-            "type": "clk",
-            "direction": "I",
-            "parameters": {
-              "ASSOCIATED_RESET": {
-                "value": "rst",
-                "value_src": "constant"
-              }
-            }
-          },
-          "rst": {
-            "type": "rst",
-            "direction": "I"
-          },
-          "pc_in": {
-            "direction": "I",
-            "left": "31",
-            "right": "0"
-          },
-          "base_in": {
-            "direction": "I",
-            "left": "31",
-            "right": "0"
-          },
-          "ins_out": {
-            "direction": "O",
-            "left": "31",
-            "right": "0"
-          }
-        }
-      },
       "Decoder_0": {
         "vlnv": "xilinx.com:module_ref:Decoder:1.0",
         "xci_name": "top_Decoder_0_0",
@@ -273,6 +171,108 @@
             "direction": "O"
           }
         }
+      },
+      "Registers_0": {
+        "vlnv": "xilinx.com:module_ref:Registers:1.0",
+        "xci_name": "top_Registers_0_0",
+        "xci_path": "ip/top_Registers_0_0/top_Registers_0_0.xci",
+        "inst_hier_path": "Registers_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "Registers",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "clk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "ASSOCIATED_RESET": {
+                "value": "rst",
+                "value_src": "constant"
+              }
+            }
+          },
+          "rst": {
+            "type": "rst",
+            "direction": "I"
+          },
+          "reg_write": {
+            "direction": "I"
+          },
+          "read_reg1": {
+            "direction": "I",
+            "left": "4",
+            "right": "0"
+          },
+          "read_reg2": {
+            "direction": "I",
+            "left": "4",
+            "right": "0"
+          },
+          "write_reg": {
+            "direction": "I",
+            "left": "4",
+            "right": "0"
+          },
+          "write_data": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "read_data1": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          },
+          "read_data2": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          }
+        }
+      },
+      "Ins_buffer_0": {
+        "vlnv": "xilinx.com:module_ref:Ins_buffer:1.0",
+        "xci_name": "top_Ins_buffer_0_0",
+        "xci_path": "ip/top_Ins_buffer_0_0/top_Ins_buffer_0_0.xci",
+        "inst_hier_path": "Ins_buffer_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "Ins_buffer",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "clk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "ASSOCIATED_RESET": {
+                "value": "rst",
+                "value_src": "constant"
+              }
+            }
+          },
+          "rst": {
+            "type": "rst",
+            "direction": "I"
+          },
+          "pc_in": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "base_in": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "ins_out": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          }
+        }
       }
     },
     "nets": {
@@ -327,18 +327,18 @@
       "clk_1": {
         "ports": [
           "clk",
-          "Ins_buffer_0/clk",
+          "Decoder_0/clk",
           "Registers_0/clk",
-          "Decoder_0/clk"
+          "Ins_buffer_0/clk"
         ]
       },
       "rst_1": {
         "ports": [
           "rst",
-          "Ins_buffer_0/rst",
-          "Registers_0/rst",
           "Decoder_0/rst",
-          "ALU_0/rst"
+          "ALU_0/rst",
+          "Registers_0/rst",
+          "Ins_buffer_0/rst"
         ]
       }
     }

@@ -1,17 +1,17 @@
 {
    "ActiveEmotionalView":"Default View",
    "Default View_ScaleFactor":"1.47718",
-   "Default View_TopLeft":"-43,-305",
+   "Default View_TopLeft":"-336,-209",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.0r4  2019-12-20 bk=1.5203 VDI=41 GEI=36 GUI=JA:10.0 TLS
 #  -string -flagsOSRD
 preplace port port-id_clk -pg 1 -lvl 0 -x -460 -y -210 -defaultsOSRD
 preplace port port-id_rst -pg 1 -lvl 0 -x -460 -y -180 -defaultsOSRD
-preplace inst Registers_0 -pg 1 -lvl 2 -x 580 -y 280 -defaultsOSRD
-preplace inst Ins_buffer_0 -pg 1 -lvl 1 -x 0 -y 30 -defaultsOSRD
 preplace inst Decoder_0 -pg 1 -lvl 1 -x 0 -y 260 -defaultsOSRD
 preplace inst ALU_0 -pg 1 -lvl 3 -x 1000 -y 270 -defaultsOSRD
 preplace inst Opcode_ctrl_0 -pg 1 -lvl 2 -x 580 -y -90 -defaultsOSRD
+preplace inst Registers_0 -pg 1 -lvl 2 -x 580 -y 280 -defaultsOSRD
+preplace inst Ins_buffer_0 -pg 1 -lvl 1 -x 0 -y 30 -defaultsOSRD
 preplace netloc Registers_0_read_data1 1 2 1 740 260n
 preplace netloc Registers_0_read_data2 1 2 1 740 280n
 preplace netloc clk_1 1 0 2 -430 150 170
