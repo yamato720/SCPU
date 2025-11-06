@@ -55,7 +55,7 @@ wire        alu_src;
 wire        reg_write;
 
 Opcode_ctrl u_opcode_ctrl (
-    .funct7(funct7),
+    .opcode(opcode),
     .branch(branch),
     .mem_read(mem_read),
     .mem2reg(mem2reg),

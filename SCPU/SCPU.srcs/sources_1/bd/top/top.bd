@@ -14,16 +14,16 @@
       "ALU_0": "",
       "ALU_ctrl_0": "",
       "mux2_1_0": "",
-      "Opcode_ctrl_0": "",
-      "PC_ctrl_0": "",
       "DataMemory_0": "",
       "mux2_1_1": "",
       "ImmGenerator_0": "",
       "mux2_1_2": "",
       "adder_int32_0": "",
-      "Ins_buffer_0": "",
+      "and_gate_0": "",
+      "PC_ctrl_0": "",
       "Registers_0": "",
-      "and_gate_0": ""
+      "Ins_buffer_0": "",
+      "Opcode_ctrl_0": ""
     },
     "ports": {
       "clk": {
@@ -209,92 +209,6 @@
           }
         }
       },
-      "Opcode_ctrl_0": {
-        "vlnv": "xilinx.com:module_ref:Opcode_ctrl:1.0",
-        "xci_name": "top_Opcode_ctrl_0_0",
-        "xci_path": "ip/top_Opcode_ctrl_0_0/top_Opcode_ctrl_0_0.xci",
-        "inst_hier_path": "Opcode_ctrl_0",
-        "reference_info": {
-          "ref_type": "hdl",
-          "ref_name": "Opcode_ctrl",
-          "boundary_crc": "0x0"
-        },
-        "ports": {
-          "funct7": {
-            "direction": "I",
-            "left": "6",
-            "right": "0"
-          },
-          "branch": {
-            "direction": "O"
-          },
-          "mem_read": {
-            "direction": "O"
-          },
-          "mem2reg": {
-            "direction": "O"
-          },
-          "aluop": {
-            "direction": "O",
-            "left": "1",
-            "right": "0"
-          },
-          "mem_write": {
-            "direction": "O"
-          },
-          "alu_src": {
-            "direction": "O"
-          },
-          "reg_write": {
-            "direction": "O"
-          }
-        }
-      },
-      "PC_ctrl_0": {
-        "vlnv": "xilinx.com:module_ref:PC_ctrl:1.0",
-        "xci_name": "top_PC_ctrl_0_0",
-        "xci_path": "ip/top_PC_ctrl_0_0/top_PC_ctrl_0_0.xci",
-        "inst_hier_path": "PC_ctrl_0",
-        "reference_info": {
-          "ref_type": "hdl",
-          "ref_name": "PC_ctrl",
-          "boundary_crc": "0x0"
-        },
-        "ports": {
-          "next_pc": {
-            "direction": "I",
-            "left": "31",
-            "right": "0"
-          },
-          "pc_write": {
-            "direction": "I"
-          },
-          "clk": {
-            "type": "clk",
-            "direction": "I",
-            "parameters": {
-              "ASSOCIATED_RESET": {
-                "value": "rst",
-                "value_src": "constant"
-              }
-            }
-          },
-          "rst": {
-            "type": "rst",
-            "direction": "I"
-          },
-          "pc_out": {
-            "direction": "O",
-            "left": "31",
-            "right": "0"
-          },
-          "pc_plus4": {
-            "direction": "O",
-            "left": "31",
-            "right": "0"
-          }
-        }
-      },
       "DataMemory_0": {
         "vlnv": "xilinx.com:module_ref:DataMemory:1.0",
         "xci_name": "top_DataMemory_0_0",
@@ -461,17 +375,47 @@
           }
         }
       },
-      "Ins_buffer_0": {
-        "vlnv": "xilinx.com:module_ref:Ins_buffer:1.0",
-        "xci_name": "top_Ins_buffer_0_0",
-        "xci_path": "ip/top_Ins_buffer_0_0/top_Ins_buffer_0_0.xci",
-        "inst_hier_path": "Ins_buffer_0",
+      "and_gate_0": {
+        "vlnv": "xilinx.com:module_ref:and_gate:1.0",
+        "xci_name": "top_and_gate_0_0",
+        "xci_path": "ip/top_and_gate_0_0/top_and_gate_0_0.xci",
+        "inst_hier_path": "and_gate_0",
         "reference_info": {
           "ref_type": "hdl",
-          "ref_name": "Ins_buffer",
+          "ref_name": "and_gate",
           "boundary_crc": "0x0"
         },
         "ports": {
+          "a": {
+            "direction": "I"
+          },
+          "b": {
+            "direction": "I"
+          },
+          "out": {
+            "direction": "O"
+          }
+        }
+      },
+      "PC_ctrl_0": {
+        "vlnv": "xilinx.com:module_ref:PC_ctrl:1.0",
+        "xci_name": "top_PC_ctrl_0_0",
+        "xci_path": "ip/top_PC_ctrl_0_0/top_PC_ctrl_0_0.xci",
+        "inst_hier_path": "PC_ctrl_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "PC_ctrl",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "next_pc": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "pc_write": {
+            "direction": "I"
+          },
           "clk": {
             "type": "clk",
             "direction": "I",
@@ -486,17 +430,12 @@
             "type": "rst",
             "direction": "I"
           },
-          "pc_in": {
-            "direction": "I",
+          "pc_out": {
+            "direction": "O",
             "left": "31",
             "right": "0"
           },
-          "base_in": {
-            "direction": "I",
-            "left": "31",
-            "right": "0"
-          },
-          "ins_out": {
+          "pc_plus4": {
             "direction": "O",
             "left": "31",
             "right": "0"
@@ -563,24 +502,85 @@
           }
         }
       },
-      "and_gate_0": {
-        "vlnv": "xilinx.com:module_ref:and_gate:1.0",
-        "xci_name": "top_and_gate_0_0",
-        "xci_path": "ip/top_and_gate_0_0/top_and_gate_0_0.xci",
-        "inst_hier_path": "and_gate_0",
+      "Ins_buffer_0": {
+        "vlnv": "xilinx.com:module_ref:Ins_buffer:1.0",
+        "xci_name": "top_Ins_buffer_0_0",
+        "xci_path": "ip/top_Ins_buffer_0_0/top_Ins_buffer_0_0.xci",
+        "inst_hier_path": "Ins_buffer_0",
         "reference_info": {
           "ref_type": "hdl",
-          "ref_name": "and_gate",
+          "ref_name": "Ins_buffer",
           "boundary_crc": "0x0"
         },
         "ports": {
-          "a": {
+          "clk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "ASSOCIATED_RESET": {
+                "value": "rst",
+                "value_src": "constant"
+              }
+            }
+          },
+          "rst": {
+            "type": "rst",
             "direction": "I"
           },
-          "b": {
-            "direction": "I"
+          "pc_in": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
           },
-          "out": {
+          "base_in": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "ins_out": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          }
+        }
+      },
+      "Opcode_ctrl_0": {
+        "vlnv": "xilinx.com:module_ref:Opcode_ctrl:1.0",
+        "xci_name": "top_Opcode_ctrl_0_0",
+        "xci_path": "ip/top_Opcode_ctrl_0_0/top_Opcode_ctrl_0_0.xci",
+        "inst_hier_path": "Opcode_ctrl_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "Opcode_ctrl",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "opcode": {
+            "direction": "I",
+            "left": "6",
+            "right": "0"
+          },
+          "branch": {
+            "direction": "O"
+          },
+          "mem_read": {
+            "direction": "O"
+          },
+          "mem2reg": {
+            "direction": "O"
+          },
+          "aluop": {
+            "direction": "O",
+            "left": "1",
+            "right": "0"
+          },
+          "mem_write": {
+            "direction": "O"
+          },
+          "alu_src": {
+            "direction": "O"
+          },
+          "reg_write": {
             "direction": "O"
           }
         }
@@ -627,7 +627,7 @@
       "Decoder_0_opcode": {
         "ports": [
           "Decoder_0/opcode",
-          "Opcode_ctrl_0/funct7"
+          "Opcode_ctrl_0/opcode"
         ]
       },
       "Decoder_0_rd": {
@@ -746,8 +746,8 @@
           "clk",
           "Decoder_0/clk",
           "PC_ctrl_0/clk",
-          "Ins_buffer_0/clk",
-          "Registers_0/clk"
+          "Registers_0/clk",
+          "Ins_buffer_0/clk"
         ]
       },
       "mux2_1_0_out": {
@@ -780,8 +780,8 @@
           "Decoder_0/rst",
           "ALU_0/rst",
           "PC_ctrl_0/rst",
-          "Ins_buffer_0/rst",
-          "Registers_0/rst"
+          "Registers_0/rst",
+          "Ins_buffer_0/rst"
         ]
       }
     }

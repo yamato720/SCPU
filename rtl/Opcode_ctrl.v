@@ -1,5 +1,5 @@
 module Opcode_ctrl (
-    input  wire [6:0] funct7,
+    input  wire [6:0] opcode,
     output reg        branch,
     output reg        mem_read,
     output reg        mem2reg,
@@ -10,7 +10,7 @@ module Opcode_ctrl (
 );
 
 always @(*) begin
-    case (funct7)
+    case (opcode)
     7'b0110011: begin
         branch    = 1'b0;
         mem_read  = 1'b0;
