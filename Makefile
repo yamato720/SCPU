@@ -1,5 +1,8 @@
 v_files := $(wildcard ./rtl/*.v)
 VERILATOR_FLAGS ?= -Wall -Wno-fatal
+
+all: check
+
 check:
 	@for v in $(v_files); do \
 		base=$$(basename $$v .v); \
@@ -11,7 +14,7 @@ check:
 			echo "Linting passed for $$v"; \
 		fi; \
 	done
-.PHONY: check
+.PHONY: check all
 
 # Check a specific file: make check-file FILE=<name> (e.g., make check-file FILE=ALU)
 check-file:

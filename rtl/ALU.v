@@ -74,7 +74,7 @@ always @(*) begin
                 overflow = ((a[31] != b[31]) && (result_temp[31] != a[31]));
                 alu_result = ((((a[31] != b[31]) && (result_temp[31] != a[31])) ? ~result_temp[31] : result_temp[31]) && (result_temp[31] != 1'b0)) ? 32'd1 : 32'd0;
             end
-            4'b0111: begin
+            4'b0111: begin // EQU
                 result_temp = a + ({1'b0, ~b} + 33'b1);
                 zero = (result_temp == 33'd0);
                 cout = result_temp[32];

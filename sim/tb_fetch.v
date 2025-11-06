@@ -48,44 +48,45 @@ end
 
 always #10 clk = ~clk;
 
+wire [31:0] instruction;
 assign ins_out = {funct7, rs2, rs1, funct3, rd, opcode};
 
 
-// Ins_buffer u_ins_buffer (
-//     .clk(clk),
-//     .rst(rst),
-//     .pc_in(pc_in),
-//     .base_in(base_in),
-//     .ins_out(ins_out)
-// );
-
-// Decoder u_decoder (
-//     .clk(clk),
-//     .rst(rst),
-//     .instruction(ins_out),
-//     .opcode(opcode),
-//     .rd(rd),
-//     .rs1(rs1),
-//     .rs2(rs2),
-//     .funct3(funct3),
-//     .funct7(funct7)
-// );
-
-
-
-
-ins_fetch ins_fetch_inst
-(   .base_in(base_in),
+Ins_buffer u_ins_buffer (
     .clk(clk),
-    .funct3(funct3),
-    .funct7(funct7),
-    .opcode(opcode),
+    .rst(rst),
     .pc_in(pc_in),
+    .base_in(base_in),
+    .ins_out(instruction)
+);
+
+Decoder u_decoder (
+    .clk(clk),
+    .rst(rst),
+    .instruction(instruction),
+    .opcode(opcode),
     .rd(rd),
     .rs1(rs1),
     .rs2(rs2),
-    .rst(rst)
+    .funct3(funct3),
+    .funct7(funct7)
 );
+
+
+
+
+// ins_fetch ins_fetch_inst
+// (   .base_in(base_in),
+//     .clk(clk),
+//     .funct3(funct3),
+//     .funct7(funct7),
+//     .opcode(opcode),
+//     .pc_in(pc_in),
+//     .rd(rd),
+//     .rs1(rs1),
+//     .rs2(rs2),
+//     .rst(rst)
+// );
 
 
 endmodule

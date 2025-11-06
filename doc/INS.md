@@ -1,5 +1,5 @@
 ## 指令格式总览
-![alt text](./image/insFormation.png)
+![alt text](../image/insFormation.png)
 
 ## RISC-V NOP 指令
 
@@ -23,12 +23,15 @@ NOP（No Operation）指令在 RISC-V 中通常是 `ADDI x0, x0, 0`，即 I-type
 
 | 指令 | opcode (6:0) | funct3 (14:12) | funct7 (31:25) | 语义 | ALU 动作 |
 |---|---|---|---|---|---|
+| 指令 | opcode (6:0) | funct3 (14:12) | funct7 (31:25) | 语义 | ALU 动作 |
+|---|---|---|---|---|---|
 | ADD | 0b0110011  | 000 | 0000000 | rd = rs1 + rs2 | ADD |
 | SUB | 0b0110011  | 000 | 0100000 | rd = rs1 - rs2 | SUB |
+| NOT | 0b0110011  | 000 | 0100000 | rd = ~rs1 (按位取反) | NOT |
 | AND | 0b0110011  | 111 | 0000000 | rd = rs1 & rs2 | AND |
-| OR  | 0b0110011  | 110 | 0000000 | rd = rs1 | rs2 | OR  |
+| OR  | 0b0110011  | 110 | 0000000 | rd = rs1 \| rs2 | OR  |
 | XOR | 0b0110011  | 100 | 0000000 | rd = rs1 ^ rs2 | XOR |
-| SLT | 0b0110011  | 010 | 0000000 | rd = (rs1 < rs2)?1:0 (有符号) | SLT |
+| EQU | 0b0110011  | 011 | 0000000 | rd = (rs1 == rs2)?1:0 | EQU |
 
 说明：
 - R-type 格式：`{funct7[31:25], rs2[24:20], rs1[19:15], funct3[14:12], rd[11:7], opcode[6:0]}`。
