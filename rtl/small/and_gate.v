@@ -1,9 +1,9 @@
 module and_gate (
     input  wire a,
     input  wire b,
-    output wire y
+    output wire out
 );
 
-    assign y = a & b;
+    assign out = a & b;
 
 endmodule
