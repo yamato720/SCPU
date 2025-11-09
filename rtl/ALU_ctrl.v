@@ -19,12 +19,22 @@ always @(*) begin
                 4'b0110: alu_control = 4'b0100; // OR
                 4'b0100: alu_control = 4'b0101; // XOR
                 4'b0010: alu_control = 4'b0110; // SLT
-                4'b0011: alu_control = 4'b0111; // equ
+                4'b0001: alu_control = 4'b1000; // SLL
+                4'b0011: alu_control = 4'b1001; // SLTU
+                4'b0101: alu_control = 4'b1010; // SRL
+                4'b1101: alu_control = 4'b1011; // SRA
                 default: alu_control = 4'b0000;
             endcase
         end
         2'b11: begin // I-type
-            alu_control = 4'b0000; // temp
+            case (funct3)
+                3'b000: alu_control = 4'b0000; // ADDI
+                3'b111: alu_control = 4'b0011; // ANDI
+                3'b110: alu_control = 4'b0100; // ORI
+                3'b100: alu_control = 4'b0101; // XORI
+                3'b010: alu_control = 4'b0110; // SLTI
+                default: alu_control = 4'b0000;
+            endcase
         end
         default: alu_control = 4'b0000;
     endcase

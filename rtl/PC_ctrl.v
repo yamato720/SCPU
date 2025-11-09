@@ -18,6 +18,6 @@ module PC_ctrl (
     end
 
     assign pc_out = pc_current;
-    assign pc_plus4 = pc_current + 32'd1; // current use +1 for testing
+    assign pc_plus4 = pc_current + 32'd4; // current use +4 for testing
 
 endmodule

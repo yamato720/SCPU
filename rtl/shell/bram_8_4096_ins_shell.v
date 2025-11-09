@@ -1,0 +1,68 @@
+module bram_8_4096_ins_shell(clka, ena, wea, addra, dina, douta, clkb, enb, web, addrb, 
+  dinb, doutb)
+/* synthesis syn_black_box black_box_pad_pin="clka,ena,wea[0:0],addra[11:0],dina[7:0],douta[7:0],clkb,enb,web[0:0],addrb[11:0],dinb[7:0],doutb[7:0]" */;
+  input clka;
+  input ena;
+  input [0:0]wea;
+  input [11:0]addra;
+  input [7:0]dina;
+  output reg [7:0]douta;
+  input clkb;
+  input enb;
+  input [0:0]web;
+  input [11:0]addrb;
+  input [7:0]dinb;
+  output reg [7:0]doutb;
+
+  reg [7:0] ram [0:4095];
+
+
+  initial begin
+    douta = 8'b0;
+    doutb = 8'b0;
+    {ram[3], ram[2], ram[1], ram[0]} = 32'h00F00093; 
+    {ram[7], ram[6], ram[5], ram[4]} = 32'h00A00113;  
+    {ram[11], ram[10], ram[9], ram[8]} = 32'h00500193; 
+    {ram[15], ram[14], ram[13], ram[12]} = 32'h00200213;
+    {ram[19], ram[18], ram[17], ram[16]} = 32'hFF800293;
+    {ram[23], ram[22], ram[21], ram[20]} = 32'h00208333;
+    {ram[27], ram[26], ram[25], ram[24]} = 32'h403083B3;
+    {ram[31], ram[30], ram[29], ram[28]} = 32'h0020F433;
+    {ram[35], ram[34], ram[33], ram[32]} = 32'h0030E4B3;
+    {ram[39], ram[38], ram[37], ram[36]} = 32'h0030C533;
+    {ram[43], ram[42], ram[41], ram[40]} = 32'h0011A5B3;
+    {ram[47], ram[46], ram[45], ram[44]} = 32'h0030A633;
+    {ram[51], ram[50], ram[49], ram[48]} = 32'h004096B3;
+    {ram[55], ram[54], ram[53], ram[52]} = 32'h0021B733;
+    {ram[59], ram[58], ram[57], ram[56]} = 32'h0032B7B3;// until ok
+    {ram[63], ram[62], ram[61], ram[60]} = 32'h0040D833;
+    {ram[67], ram[66], ram[65], ram[64]} = 32'h4042D8B3;
+    {ram[71], ram[70], ram[69], ram[68]} = 32'h00730933;
+    {ram[75], ram[74], ram[73], ram[72]} = 32'h00000013;
+    
+
+    // The rest are zeros (NOP instructions)
+    for (integer i = 76; i < 4096; i = i + 4) begin
+        {ram[i+3],ram[i+2],ram[i+1],ram[i]} = 32'h00000013; // NOP
+    end
+  end
+
+  always @(posedge clka) begin
+    if (ena) begin
+      if (wea) begin
+        ram[addra] <= dina;
+      end
+      douta <= ram[addra];
+    end
+  end
+
+  always @(posedge clkb) begin
+    if (enb) begin
+      if (web) begin
+        ram[addrb] <= dinb;
+      end
+      doutb <= ram[addrb];
+    end
+  end
+
+endmodule

@@ -29,6 +29,15 @@ always @(*) begin
         alu_src   = 1'b1;
         reg_write = 1'b1;
     end
+    7'b0010011: begin
+        branch    = 1'b0;
+        mem_read  = 1'b0;
+        mem2reg   = 1'b0;
+        aluop     = 2'b11; // I-type
+        mem_write = 1'b0;
+        alu_src   = 1'b1;
+        reg_write = 1'b1;
+    end
     7'b0100011: begin
         branch    = 1'b0;
         mem_read  = 1'b0;

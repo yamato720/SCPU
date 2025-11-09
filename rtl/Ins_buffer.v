@@ -1,70 +1,38 @@
+/*
+
+5周期一条指令比较合适，这样即使出现流水线停顿，busy结束后也能保证有指令可用
+
+*/
+
+
 module Ins_buffer(
     input  wire        clk,
     input  wire        rst,
     input  wire [31:0] pc_in,
-    input  wire [31:0] base_in,
-    output reg  [31:0] ins_out
+    input  wire [7:0]  ins_low,
+    input  wire [7:0]  ins_high,
+    output reg  [31:0] ins_out,
+    output reg  [31:0] addr_low,
+    output reg  [31:0] addr_high,
+    output reg         valid,
+    output reg         busy
 );
 
 reg [31:0] ins [0:127];
 
-// reg        valid;
+reg        finished;
 reg [31:0] pc_base;
 reg [7:0]  index;
+reg [7:0]  access_cnt;
+// reg        valid;
+reg low_high_toggle;
 
-always @(*) begin
-    index = pc_in - pc_base;
+always @(posedge clk) begin
+    index = (pc_in - pc_base) >> 2;
 end
 
 initial begin
-    // ==================== RISC-V 测试指令序列 ====================
-    // 预期初始状态: 所有寄存器 = 0
-    // 为了测试有意义，需要先初始化一些非零值到寄存器
-    
-    // --- 使用伪指令初始化寄存器（实际需要根据你的 CPU 是否支持 I-type） ---
-    // 如果只支持 R-type，则需要预先在 Registers.v 中设置初始值
-    // 这里假设 x1=15, x2=10, x3=5 已通过其他方式初始化
-    
-    // 1. ADD: x4 = x1 + x2 (假设 x1=15, x2=10, 结果=25)
-    // R-type: opcode=0110011, rd=x4, funct3=000, rs1=x1, rs2=x2, funct7=0000000
-    // 格式: funct7[31:25] | rs2[24:20] | rs1[19:15] | funct3[14:12] | rd[11:7] | opcode[6:0]
-    ins[0] = 32'h00208233; // ADD x4, x1, x2
-    
-    // 2. SUB: x5 = x1 - x3 (15 - 5 = 10)
-    // R-type: funct7=0100000, rs2=x3, rs1=x1, funct3=000, rd=x5
-    ins[1] = 32'h403082B3; // SUB x5, x1, x3
-    
-    // 3. AND: x6 = x1 & x2 (15 & 10 = 10, 二进制: 1111 & 1010 = 1010)
-    // R-type: funct7=0000000, rs2=x2, rs1=x1, funct3=111, rd=x6
-    ins[2] = 32'h0020F333; // AND x6, x1, x2
-    
-    // 4. OR: x7 = x1 | x3 (15 | 5 = 15, 二进制: 1111 | 0101 = 1111)
-    // R-type: funct7=0000000, rs2=x3, rs1=x1, funct3=110, rd=x7
-    ins[3] = 32'h0030E3B3; // OR x7, x1, x3
-    
-    // 5. XOR: x8 = x1 ^ x3 (15 ^ 5 = 10, 二进制: 1111 ^ 0101 = 1010)
-    // R-type: funct7=0000000, rs2=x3, rs1=x1, funct3=100, rd=x8
-    ins[4] = 32'h0030C433; // XOR x8, x1, x3
-    
-    // 6. SLT: x9 = (x3 < x1) ? 1 : 0 (5 < 15 = 1)
-    // R-type: funct7=0000000, rs2=x1, rs1=x3, funct3=010, rd=x9
-    ins[5] = 32'h0011A4B3; // SLT x9, x3, x1
-    
-    // 7. SLT: x10 = (x1 < x3) ? 1 : 0 (15 < 5 = 0)
-    // R-type: funct7=0000000, rs2=x3, rs1=x1, funct3=010, rd=x10
-    ins[6] = 32'h0030A533; // SLT x10, x1, x3
-    
-    // 8. ADD: x11 = x4 + x5 (25 + 10 = 35)
-    ins[7] = 32'h005205B3; // ADD x11, x4, x5
-    
-    // 9. SUB: x12 = x4 - x3 (25 - 5 = 20)
-    ins[8] = 32'h40320633; // SUB x12, x4, x3
-    
-    // 10. NOP (用于结束或占位)
-    ins[9] = 32'h00000013; // NOP (ADDI x0, x0, 0)
-    
-    // 填充剩余指令为 NOP
-    for (index = 10; index < 128; index = index + 1) begin
+    for (index = 0; index < 128; index = index + 1) begin
         ins[index] = 32'h00000013; // NOP
     end
     
@@ -77,23 +45,94 @@ initial begin
     // 或者添加 I-type (ADDI) 支持来动态初始化
 end
 
-
+reg [31:0] ins_temp;
 
 always @(posedge clk) begin
     if (rst) begin
         ins_out <= 32'b0;
-        // valid <= 1'b1;
+        valid <= 1'b0;
+        ins_temp <= 32'b0;
         pc_base <= 32'b0;
     end else begin
-        if (index <= 8'd11) begin
+        if (index < access_cnt && valid) begin
             ins_out <= ins[index];
-            // valid <= 1'b1;
+            ins_temp <= ins[index];
         end else begin
-            ins_out <= 32'h00000013; // NOP
-            // valid <= 1'b0;
+            ins_out <= ins_temp;
+            valid <= 1'b0;
+            pc_base <= pc_in;
         end
     end
 end
+
+
+reg finished;
+
+always @(posedge clk) begin
+    if (rst) begin
+        busy <= 1'b1;
+    end else if(!(index < access_cnt && valid)) begin
+        busy <= 1'b1;   
+    end else if(valid == 1 && valid_latch == 0) begin
+        busy <= 1'b0;
+    end else
+    begin
+        busy <= busy;
+    end
+end
+
+
+
+
+reg  [1:0] wait_cycle;
+
+reg valid_latch; 
+
+always @(posedge clk) begin
+    valid_latch <= valid;
+end
+
+
+always @(posedge clk) begin
+    if (rst) begin
+        finished <= 1'b0;
+        low_high_toggle <= 1'b0;
+        addr_low <= 32'b0;
+        addr_high <= 32'b1;
+        access_cnt <= 8'b0;
+        wait_cycle <= 2'b00;
+    end else if(access_cnt > 8'd127) begin  // 读满128条指令后停止
+        finished <= 1'b1;
+        addr_low <= pc_base;
+        addr_high <= pc_base + 32'b1;
+        wait_cycle <= 2'b00;
+        access_cnt <= 8'b0;
+    end else if (!finished && wait_cycle[0] == 1'b0) begin
+        addr_low <= addr_low + 32'd2;
+        addr_high <= addr_high + 32'd2;
+        wait_cycle <= wait_cycle + 1'b1;
+    end else if(!finished && wait_cycle[0] == 1'b1) begin
+        if (low_high_toggle == 1'b0) begin
+            ins[access_cnt][15:0]   <= {ins_high, ins_low};
+        end else begin
+            ins[access_cnt][31:16]  <= {ins_high, ins_low};
+            access_cnt <= access_cnt + 1;
+        end
+        low_high_toggle <= ~low_high_toggle;
+        if(wait_cycle == 2'b11 && access_cnt == 8'd0) begin
+            valid <= 1'b1;
+        end
+        wait_cycle <= wait_cycle + 1'b1;
+    end else if(!valid)begin
+        finished <= 1'b0;
+        low_high_toggle <= 1'b0;
+        addr_low <= pc_in;
+        addr_high <= pc_in + 32'b1;
+        wait_cycle <= 2'b00;
+    end
+
+end
+
 
 endmodule
 
