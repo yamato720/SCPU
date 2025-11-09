@@ -14,9 +14,9 @@ reg [31:0] reg_file [0:31];
 
 initial begin
     reg_file[0] = 32'b0;          // x0: 固定为 0 (RISC-V 规范)
-    reg_file[1] = 32'd15;         // x1: 初始化为 15 (测试用)
-    reg_file[2] = 32'd10;         // x2: 初始化为 10 (测试用)
-    reg_file[3] = 32'd5;          // x3: 初始化为 5 (测试用)
+    reg_file[1] = 32'd0;         // x1: 初始化为 15 (测试用)
+    reg_file[2] = 32'd0;         // x2: 初始化为 10 (测试用)
+    reg_file[3] = 32'd0;          // x3: 初始化为 5 (测试用)
     reg_file[4] = 32'b0;
     reg_file[5] = 32'b0;
     reg_file[6] = 32'b0;

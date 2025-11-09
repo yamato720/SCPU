@@ -19,12 +19,42 @@ PC_ctrl u_pc_ctrl (
 );
 
 wire [31:0] ins_out;
-Ins_buffer u_ins_buffer (
+wire [31:0] ins_low;
+wire [31:0] ins_high;
+wire        valid;
+wire        busy;
+wire [31:0] addr_low;
+wire [31:0] addr_high;
+wire        low_high_toggle;
+wire [7:0]  access_cnt;
+
+
+bram_8_4096_ins_shell bram_inst (
+    .clka(clk),
+    .ena(1'b1),
+    .wea(1'b0),
+    .addra(addr_low[11:0]),
+    .dina(8'b0),
+    .douta(ins_low),
+    .clkb(clk),
+    .enb(1'b1),
+    .web(1'b0),
+    .addrb(addr_high[11:0]),
+    .dinb(8'b0),
+    .doutb(ins_high)
+);
+
+Ins_buffer u_Ins_buffer (
     .clk(clk),
     .rst(rst),
     .pc_in(pc_out),
-    .base_in(32'b0),
-    .ins_out(ins_out)
+    .ins_low(ins_low),
+    .ins_high(ins_high),
+    .ins_out(ins_out),
+    .addr_low(addr_low),
+    .addr_high(addr_high),
+    .valid(valid),
+    .busy(busy)
 );
 
 wire [6:0]  opcode;
@@ -34,10 +64,11 @@ wire [4:0]  rs2;
 wire [2:0]  funct3;
 wire [6:0]  funct7;
 
-Decoder u_decoder (
+Decoder u_Decoder(
     .clk(clk),
     .rst(rst),
     .instruction(ins_out),
+    .busy(busy),
     .opcode(opcode),
     .rd(rd),
     .rs1(rs1),
@@ -85,6 +116,8 @@ wire [63:0] imm_out_64;
 wire [31:0] imm_out_32;
 
 ImmGenerator u_imm_gen (
+    .clk(clk),
+    .rst(rst),
     .instruction(ins_out),
     .imm_out_64(imm_out_64),
     .imm_out_32(imm_out_32)
@@ -145,14 +178,49 @@ mux2_1 u_pc_mux (
     .out(next_pc)
 );
 
-DataMemory u_data_memory (
+wire en;
+wire we;
+wire [31:0] addr_a;
+wire [7:0]  data_a;
+wire [31:0] addr_b;
+wire [7:0]  data_b;
+wire [7:0]  recv_data_a;
+wire [7:0]  recv_data_b;
+
+bram_8_4096_mem_shell bram_8_4096_mem_shell_inst (
+    .clka(clk),
+    .ena(en),
+    .wea(we),
+    .addra(addr_a),
+    .dina(data_a),
+    .douta(recv_data_a),
+    .clkb(clk),
+    .enb(en),
+    .web(we),
+    .addrb(addr_b),
+    .dinb(data_b),
+    .doutb(recv_data_b)
+);
+
+
+
+
+DataMemory DataMemory_inst(
     .clk(clk),
     .rst(rst),
     .mem_write(mem_write),
     .mem_read(mem_read),
-    .addr(alu_result),
-    .write_data(read_data2),
-    .read_data(read_data)
+    .addr(addr),
+    .write_data(write_data),
+    .recv_data_a(recv_data_a),
+    .recv_data_b(recv_data_b),
+    .read_data(read_data),
+    .en(en),
+    .we(we),
+    .addr_a(addr_a),
+    .data_a(data_a),
+    .addr_b(addr_b),
+    .data_b(data_b)
 );
 
 mux2_1 u_mem2reg_mux (

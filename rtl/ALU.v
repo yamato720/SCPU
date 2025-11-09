@@ -81,6 +81,34 @@ always @(*) begin
                 overflow = 1'b0;
                 alu_result = {result_temp == 33'd0 ? 32'd1 : 32'd0};
             end
+            4'b1000: begin // SLL
+                result_temp = a << b[4:0];
+                zero = (result_temp == 33'd0);
+                cout = result_temp[32];
+                overflow = 1'b0;
+                alu_result = result_temp[31:0];
+            end
+            4'b1001: begin // SLTU
+                result_temp = a + ({1'b0, ~b} + 33'b1);
+                zero = (result_temp == 33'd0);
+                cout = result_temp[32];
+                overflow = ((a[31] != b[31]) && (result_temp[31] != a[31]));
+                alu_result = result_temp[31] && a[31] == 0 ? 32'd1 : 32'd0;
+            end
+            4'b1010: begin // SRL
+                result_temp = a >> b[4:0];
+                zero = (result_temp == 33'd0);
+                cout = result_temp[32];
+                overflow = 1'b0;
+                alu_result = result_temp[31:0];
+            end
+            4'b1011: begin // SRA
+                result_temp = ($signed(a)) >>> b[4:0];
+                zero = (result_temp == 33'd0);
+                cout = result_temp[32];
+                overflow = 1'b0;
+                alu_result = result_temp[31:0];
+            end
             default: begin
                 result_temp = 33'd0;
                 alu_result = 32'd0;

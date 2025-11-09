@@ -22,12 +22,12 @@ module tb_top();
         rst = 0;
 
         #15;
-        #40;
-        repeat (10) begin  // 2 cycles 1 instruction
+        #400;
+        repeat (20) begin  // 20 cycles 1 instruction
             pc_write = 1;
             #20;
             pc_write = 0;
-            #20;
+            #400;
         end
         $finish;
     end
