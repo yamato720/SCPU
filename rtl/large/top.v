@@ -9,9 +9,28 @@ wire [31:0] next_pc;
 wire [31:0] pc_out;
 wire [31:0] pc_plus4;
 
+
+wire        valid;
+wire        tick_pc;
+wire        tick_ifid;
+wire        tick_idex;
+wire        tick_exmem;
+
+Metronome u_metronome
+(
+    .clk(clk),
+    .rst(rst),
+    .stuck(busy),
+    .tick_pc(tick_pc),
+    .tick_ifid(tick_ifid),
+    .tick_idex(tick_idex),
+    .tick_exmem(tick_exmem),
+    .tick_memwb(tick_memwb)
+);
+
 PC_ctrl u_pc_ctrl (
     .next_pc(next_pc), 
-    .pc_write(pc_write),
+    .pc_write(tick_pc),
     .clk(clk),
     .rst(rst),
     .pc_out(pc_out),
@@ -21,7 +40,6 @@ PC_ctrl u_pc_ctrl (
 wire [31:0] ins_out;
 wire [31:0] ins_low;
 wire [31:0] ins_high;
-wire        valid;
 wire        busy;
 wire [31:0] addr_low;
 wire [31:0] addr_high;
@@ -69,6 +87,7 @@ Decoder u_Decoder(
     .rst(rst),
     .instruction(ins_out),
     .busy(busy),
+    .tick_ifid(tick_ifid),
     .opcode(opcode),
     .rd(rd),
     .rs1(rs1),
@@ -108,6 +127,7 @@ Registers u_registers (
     .read_reg2(rs2),
     .write_reg(rd),
     .write_data(write_data),
+    .tick_memwb(tick_memwb),
     .read_data1(read_data1),
     .read_data2(read_data2)
 );
@@ -146,11 +166,13 @@ wire        cout;
 wire        overflow;
 
 ALU u_alu (   
+    .clk(clk),
     .rst(rst),
-    .a(read_data1),
-    .b(alu_src_out),
-    .alu_control(alu_control),
+    .a_in(read_data1),
+    .b_in(alu_src_out),
+    .alu_control_in(alu_control),
     .alu_result(alu_result),
+    .tick_idex(tick_idex),
     .zero(zero),
     .cout(cout),
     .overflow(overflow)
@@ -186,6 +208,7 @@ wire [31:0] addr_b;
 wire [7:0]  data_b;
 wire [7:0]  recv_data_a;
 wire [7:0]  recv_data_b;
+wire [31:0] read_data;
 
 bram_8_4096_mem_shell bram_8_4096_mem_shell_inst (
     .clka(clk),
@@ -210,8 +233,10 @@ DataMemory DataMemory_inst(
     .rst(rst),
     .mem_write(mem_write),
     .mem_read(mem_read),
-    .addr(addr),
-    .write_data(write_data),
+    .addr(alu_result),
+    .write_data(read_data2),
+    .mem_width(funct3),
+    .tick_exmem(tick_exmem),
     .recv_data_a(recv_data_a),
     .recv_data_b(recv_data_b),
     .read_data(read_data),

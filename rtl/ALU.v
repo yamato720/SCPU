@@ -1,9 +1,11 @@
 module ALU
 (   
+    input  wire        clk,
     input  wire        rst,
-    input  wire [31:0] a,
-    input  wire [31:0] b,
-    input  wire [3:0]  alu_control,
+    input  wire [31:0] a_in,
+    input  wire [31:0] b_in,
+    input  wire [3:0]  alu_control_in,
+    input  wire        tick_idex,
     output reg  [31:0] alu_result,
     output reg         zero,
     output reg         cout,
@@ -14,9 +16,25 @@ module ALU
 
 
 reg [32:0] result_temp;
+reg [31:0] a;
+reg [31:0] b;
+reg [3:0]  alu_control;
 
-always @(*) begin
+always @(posedge clk) begin
     if(rst) begin
+        result_temp = 33'd0;
+        alu_result = 32'd0;
+        zero = 1'b1;
+        cout = 1'b0;
+        overflow = 1'b0;
+        a <= 32'd0;
+        b <= 32'd0;
+        alu_control <= 4'd0;
+    end
+    else if(tick_idex) begin
+        a <= a_in;
+        b <= b_in;
+        alu_control <= alu_control_in;
         result_temp = 33'd0;
         alu_result = 32'd0;
         zero = 1'b1;

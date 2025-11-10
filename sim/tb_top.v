@@ -22,12 +22,8 @@ module tb_top();
         rst = 0;
 
         #15;
-        #400;
-        repeat (20) begin  // 20 cycles 1 instruction
-            pc_write = 1;
-            #20;
-            pc_write = 0;
-            #400;
+        repeat (41) begin  // 20 cycles 1 instruction
+            #500;
         end
         $finish;
     end

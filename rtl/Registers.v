@@ -6,6 +6,7 @@ module Registers(
     input  wire [4:0]  read_reg2,
     input  wire [4:0]  write_reg,
     input  wire [31:0] write_data,
+    input  wire        tick_memwb,
     output wire [31:0] read_data1,
     output wire [31:0] read_data2
 );
@@ -82,7 +83,7 @@ always @(posedge clk) begin
         // reg_file[29] <= 32'd29;
         // reg_file[30] <= 32'd30;
         // reg_file[31] <= 32'd31;
-    end else if (reg_write && write_reg != 5'd0) begin
+    end else if (reg_write && write_reg != 5'd0 && tick_memwb) begin
         // Write data to the register file, but skip x0
         reg_file[write_reg] <= write_data;
         reg_file[0] <= 32'b0; // Ensure x0 remains zero

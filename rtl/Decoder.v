@@ -3,6 +3,7 @@ module Decoder(
     input  wire        rst,
     input  wire [31:0] instruction,
     input  wire        busy,
+    input  wire        tick_ifid,
     output wire [6:0]  opcode,
     output wire [4:0]  rd,
     output wire [4:0]  rs1,
@@ -16,7 +17,7 @@ reg [31:0] instruction_reg;
 always @(posedge clk) begin
     if (rst) begin
         instruction_reg <= 32'h00000013;
-    end else if(!busy)begin
+    end else if(!busy && tick_ifid)begin
         instruction_reg <= instruction;
     end else begin
         instruction_reg <= instruction_reg;

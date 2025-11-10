@@ -5,6 +5,10 @@ module ALU_ctrl (
     output reg  [3:0] alu_control
 );
 
+
+
+
+
 wire [5:0] check;
 assign check = {aluop, funct7[5], funct3};
 always @(*) begin
@@ -33,6 +37,15 @@ always @(*) begin
                 3'b110: alu_control = 4'b0100; // ORI
                 3'b100: alu_control = 4'b0101; // XORI
                 3'b010: alu_control = 4'b0110; // SLTI
+                3'b001: alu_control = 4'b1000; // SLLI
+                3'b011: alu_control = 4'b1001; // SLTIU
+                3'b101: begin
+                    if (funct7[5] == 1'b0) begin
+                        alu_control = 4'b1010; // SRLI
+                    end else begin
+                        alu_control = 4'b1011; // SRAI
+                    end
+                end
                 default: alu_control = 4'b0000;
             endcase
         end
