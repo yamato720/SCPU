@@ -10,22 +10,25 @@
       "tool_version": "2022.2"
     },
     "design_tree": {
-      "mux2_1_0": "",
       "mux2_1_1": "",
       "mux2_1_2": "",
       "adder_int32_0": "",
-      "and_gate_0": "",
       "PC_ctrl_0": "",
       "bram_8_4096_mem_shell_0": "",
       "ImmGenerator_0": "",
       "Ins_buffer_0": "",
       "Decoder_0": "",
       "Registers_0": "",
+      "Metronome_0": "",
       "Opcode_ctrl_0": "",
       "ALU_ctrl_0": "",
-      "ALU_0": "",
       "DataMemory_0": "",
-      "Metronome_0": "",
+      "lshift_32_fix1_0": "",
+      "adder_int32_1": "",
+      "ALU_0": "",
+      "and_gate_0": "",
+      "pc_align_0": "",
+      "mux8_3_0": "",
       "bram_8_4096_ins_shell_0": ""
     },
     "ports": {
@@ -37,37 +40,6 @@
       }
     },
     "components": {
-      "mux2_1_0": {
-        "vlnv": "xilinx.com:module_ref:mux2_1:1.0",
-        "xci_name": "top_mux2_1_0_0",
-        "xci_path": "ip/top_mux2_1_0_0/top_mux2_1_0_0.xci",
-        "inst_hier_path": "mux2_1_0",
-        "reference_info": {
-          "ref_type": "hdl",
-          "ref_name": "mux2_1",
-          "boundary_crc": "0x0"
-        },
-        "ports": {
-          "sel": {
-            "direction": "I"
-          },
-          "in0": {
-            "direction": "I",
-            "left": "31",
-            "right": "0"
-          },
-          "in1": {
-            "direction": "I",
-            "left": "31",
-            "right": "0"
-          },
-          "out": {
-            "direction": "O",
-            "left": "31",
-            "right": "0"
-          }
-        }
-      },
       "mux2_1_1": {
         "vlnv": "xilinx.com:module_ref:mux2_1:1.0",
         "xci_name": "top_mux2_1_1_0",
@@ -155,28 +127,6 @@
             "direction": "O",
             "left": "31",
             "right": "0"
-          }
-        }
-      },
-      "and_gate_0": {
-        "vlnv": "xilinx.com:module_ref:and_gate:1.0",
-        "xci_name": "top_and_gate_0_0",
-        "xci_path": "ip/top_and_gate_0_0/top_and_gate_0_0.xci",
-        "inst_hier_path": "and_gate_0",
-        "reference_info": {
-          "ref_type": "hdl",
-          "ref_name": "and_gate",
-          "boundary_crc": "0x0"
-        },
-        "ports": {
-          "a": {
-            "direction": "I"
-          },
-          "b": {
-            "direction": "I"
-          },
-          "out": {
-            "direction": "O"
           }
         }
       },
@@ -526,6 +476,51 @@
           }
         }
       },
+      "Metronome_0": {
+        "vlnv": "xilinx.com:module_ref:Metronome:1.0",
+        "xci_name": "top_Metronome_0_0",
+        "xci_path": "ip/top_Metronome_0_0/top_Metronome_0_0.xci",
+        "inst_hier_path": "Metronome_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "Metronome",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "clk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "ASSOCIATED_RESET": {
+                "value": "rst",
+                "value_src": "constant"
+              }
+            }
+          },
+          "rst": {
+            "type": "rst",
+            "direction": "I"
+          },
+          "stuck": {
+            "direction": "I"
+          },
+          "tick_pc": {
+            "direction": "O"
+          },
+          "tick_ifid": {
+            "direction": "O"
+          },
+          "tick_idex": {
+            "direction": "O"
+          },
+          "tick_exmem": {
+            "direction": "O"
+          },
+          "tick_memwb": {
+            "direction": "O"
+          }
+        }
+      },
       "Opcode_ctrl_0": {
         "vlnv": "xilinx.com:module_ref:Opcode_ctrl:1.0",
         "xci_name": "top_Opcode_ctrl_0_0",
@@ -595,67 +590,8 @@
           },
           "alu_control": {
             "direction": "O",
-            "left": "3",
+            "left": "4",
             "right": "0"
-          }
-        }
-      },
-      "ALU_0": {
-        "vlnv": "xilinx.com:module_ref:ALU:1.0",
-        "xci_name": "top_ALU_0_0",
-        "xci_path": "ip/top_ALU_0_0/top_ALU_0_0.xci",
-        "inst_hier_path": "ALU_0",
-        "reference_info": {
-          "ref_type": "hdl",
-          "ref_name": "ALU",
-          "boundary_crc": "0x0"
-        },
-        "ports": {
-          "clk": {
-            "type": "clk",
-            "direction": "I",
-            "parameters": {
-              "ASSOCIATED_RESET": {
-                "value": "rst",
-                "value_src": "constant"
-              }
-            }
-          },
-          "rst": {
-            "type": "rst",
-            "direction": "I"
-          },
-          "a_in": {
-            "direction": "I",
-            "left": "31",
-            "right": "0"
-          },
-          "b_in": {
-            "direction": "I",
-            "left": "31",
-            "right": "0"
-          },
-          "alu_control_in": {
-            "direction": "I",
-            "left": "3",
-            "right": "0"
-          },
-          "tick_idex": {
-            "direction": "I"
-          },
-          "alu_result": {
-            "direction": "O",
-            "left": "31",
-            "right": "0"
-          },
-          "zero": {
-            "direction": "O"
-          },
-          "cout": {
-            "direction": "O"
-          },
-          "overflow": {
-            "direction": "O"
           }
         }
       },
@@ -754,14 +690,65 @@
           }
         }
       },
-      "Metronome_0": {
-        "vlnv": "xilinx.com:module_ref:Metronome:1.0",
-        "xci_name": "top_Metronome_0_0",
-        "xci_path": "ip/top_Metronome_0_0/top_Metronome_0_0.xci",
-        "inst_hier_path": "Metronome_0",
+      "lshift_32_fix1_0": {
+        "vlnv": "xilinx.com:module_ref:lshift_32_fix1:1.0",
+        "xci_name": "top_lshift_32_fix1_0_0",
+        "xci_path": "ip/top_lshift_32_fix1_0_0/top_lshift_32_fix1_0_0.xci",
+        "inst_hier_path": "lshift_32_fix1_0",
         "reference_info": {
           "ref_type": "hdl",
-          "ref_name": "Metronome",
+          "ref_name": "lshift_32_fix1",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "data_in": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "data_out": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          }
+        }
+      },
+      "adder_int32_1": {
+        "vlnv": "xilinx.com:module_ref:adder_int32:1.0",
+        "xci_name": "top_adder_int32_0_1",
+        "xci_path": "ip/top_adder_int32_0_1/top_adder_int32_0_1.xci",
+        "inst_hier_path": "adder_int32_1",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "adder_int32",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "a": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "b": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "sum": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          }
+        }
+      },
+      "ALU_0": {
+        "vlnv": "xilinx.com:module_ref:ALU:1.0",
+        "xci_name": "top_ALU_0_0",
+        "xci_path": "ip/top_ALU_0_0/top_ALU_0_0.xci",
+        "inst_hier_path": "ALU_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "ALU",
           "boundary_crc": "0x0"
         },
         "ports": {
@@ -779,23 +766,159 @@
             "type": "rst",
             "direction": "I"
           },
-          "stuck": {
-            "direction": "I"
+          "a_in": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
           },
-          "tick_pc": {
-            "direction": "O"
+          "b_in": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
           },
-          "tick_ifid": {
-            "direction": "O"
+          "alu_control_in": {
+            "direction": "I",
+            "left": "4",
+            "right": "0"
           },
           "tick_idex": {
+            "direction": "I"
+          },
+          "pc": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "alu_result": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          },
+          "zero": {
             "direction": "O"
           },
-          "tick_exmem": {
+          "cout": {
             "direction": "O"
           },
-          "tick_memwb": {
+          "overflow": {
             "direction": "O"
+          },
+          "branch_taken": {
+            "direction": "O",
+            "left": "2",
+            "right": "0"
+          }
+        }
+      },
+      "and_gate_0": {
+        "vlnv": "xilinx.com:module_ref:and_gate:1.0",
+        "xci_name": "top_and_gate_0_0",
+        "xci_path": "ip/top_and_gate_0_0/top_and_gate_0_0.xci",
+        "inst_hier_path": "and_gate_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "and_gate",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "a": {
+            "direction": "I"
+          },
+          "b": {
+            "direction": "I",
+            "left": "2",
+            "right": "0"
+          },
+          "out": {
+            "direction": "O",
+            "left": "2",
+            "right": "0"
+          }
+        }
+      },
+      "pc_align_0": {
+        "vlnv": "xilinx.com:module_ref:pc_align:1.0",
+        "xci_name": "top_pc_align_0_0",
+        "xci_path": "ip/top_pc_align_0_0/top_pc_align_0_0.xci",
+        "inst_hier_path": "pc_align_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "pc_align",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "pc_in": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "pc_out": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          }
+        }
+      },
+      "mux8_3_0": {
+        "vlnv": "xilinx.com:module_ref:mux8_3:1.0",
+        "xci_name": "top_mux8_3_0_0",
+        "xci_path": "ip/top_mux8_3_0_0/top_mux8_3_0_0.xci",
+        "inst_hier_path": "mux8_3_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "mux8_3",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "sel": {
+            "direction": "I",
+            "left": "2",
+            "right": "0"
+          },
+          "in0": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "in1": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "in2": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "in3": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "in4": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "in5": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "in6": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "in7": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "out": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
           }
         }
       },
@@ -873,9 +996,9 @@
           "DataMemory_0/addr"
         ]
       },
-      "ALU_0_zero": {
+      "ALU_0_branch_taken": {
         "ports": [
-          "ALU_0/zero",
+          "ALU_0/branch_taken",
           "and_gate_0/b"
         ]
       },
@@ -975,8 +1098,8 @@
       "ImmGenerator_0_imm_out_32": {
         "ports": [
           "ImmGenerator_0/imm_out_32",
-          "mux2_1_2/in1",
-          "adder_int32_0/b"
+          "lshift_32_fix1_0/data_in",
+          "adder_int32_1/b"
         ]
       },
       "Ins_buffer_0_addr_high": {
@@ -1018,7 +1141,8 @@
       },
       "Metronome_0_tick_idex": {
         "ports": [
-          "Metronome_0/tick_idex"
+          "Metronome_0/tick_idex",
+          "ALU_0/tick_idex"
         ]
       },
       "Metronome_0_tick_ifid": {
@@ -1085,18 +1209,20 @@
         "ports": [
           "PC_ctrl_0/pc_out",
           "adder_int32_0/a",
-          "Ins_buffer_0/pc_in"
+          "Ins_buffer_0/pc_in",
+          "ALU_0/pc"
         ]
       },
       "PC_ctrl_0_pc_plus4": {
         "ports": [
           "PC_ctrl_0/pc_plus4",
-          "mux2_1_0/in0"
+          "mux8_3_0/in0"
         ]
       },
       "Registers_0_read_data1": {
         "ports": [
           "Registers_0/read_data1",
+          "adder_int32_1/a",
           "ALU_0/a_in"
         ]
       },
@@ -1109,13 +1235,19 @@
       "adder_int32_0_sum": {
         "ports": [
           "adder_int32_0/sum",
-          "mux2_1_0/in1"
+          "mux8_3_0/in1"
         ]
       },
-      "and_gate_0_y": {
+      "adder_int32_1_sum": {
+        "ports": [
+          "adder_int32_1/sum",
+          "pc_align_0/pc_in"
+        ]
+      },
+      "and_gate_0_out": {
         "ports": [
           "and_gate_0/out",
-          "mux2_1_0/sel"
+          "mux8_3_0/sel"
         ]
       },
       "bram_8_4096_ins_shell_0_douta": {
@@ -1151,16 +1283,17 @@
           "Ins_buffer_0/clk",
           "Decoder_0/clk",
           "Registers_0/clk",
-          "ALU_0/clk",
-          "DataMemory_0/clk",
           "Metronome_0/clk",
+          "DataMemory_0/clk",
+          "ALU_0/clk",
+          "ImmGenerator_0/clk",
           "bram_8_4096_ins_shell_0/clka"
         ]
       },
-      "mux2_1_0_out": {
+      "lshift_32_fix1_0_data_out": {
         "ports": [
-          "mux2_1_0/out",
-          "PC_ctrl_0/next_pc"
+          "lshift_32_fix1_0/data_out",
+          "adder_int32_0/b"
         ]
       },
       "mux2_1_1_out": {
@@ -1175,6 +1308,18 @@
           "ALU_0/b_in"
         ]
       },
+      "mux8_3_0_out": {
+        "ports": [
+          "mux8_3_0/out",
+          "PC_ctrl_0/next_pc"
+        ]
+      },
+      "pc_align_0_pc_out": {
+        "ports": [
+          "pc_align_0/pc_out",
+          "mux8_3_0/in2"
+        ]
+      },
       "rst_1": {
         "ports": [
           "rst",
@@ -1182,9 +1327,10 @@
           "Ins_buffer_0/rst",
           "Decoder_0/rst",
           "Registers_0/rst",
-          "ALU_0/rst",
+          "Metronome_0/rst",
           "DataMemory_0/rst",
-          "Metronome_0/rst"
+          "ALU_0/rst",
+          "ImmGenerator_0/rst"
         ]
       }
     }

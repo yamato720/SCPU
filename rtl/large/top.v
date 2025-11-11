@@ -151,7 +151,21 @@ mux2_1 u_alu_src_mux (
     .out(alu_src_out)
 );
 
-wire [3:0] alu_control;
+wire [31:0] next_pc_branch2;
+wire [31:0] pc_adder_2_out;
+
+adder_int32 u_pc_adder_2 (
+    .a(pc_out),
+    .b(imm_out_32),
+    .sum(pc_adder_2_out)
+);
+wire [31:0] imm_shifted;
+lshift_32_fix1 u_lshift_32_fix1 (
+    .data_in(imm_out_32),
+    .data_out(imm_shifted)
+);
+
+wire [4:0] alu_control;
 wire [31:0] alu_result;
 
 ALU_ctrl u_alu_ctrl (
@@ -164,7 +178,7 @@ ALU_ctrl u_alu_ctrl (
 wire        zero;
 wire        cout;
 wire        overflow;
-
+wire [2:0]  branch_taken;
 ALU u_alu (   
     .clk(clk),
     .rst(rst),
@@ -176,27 +190,39 @@ ALU u_alu (
     .pc(pc_out),
     .zero(zero),
     .cout(cout),
-    .overflow(overflow)
+    .overflow(overflow),
+    .branch_taken(branch_taken)
 );
 
-wire [31:0] next_pc_branch;
-
-adder_int32 u_pc_adder (
+pc_align u_pc_align (
+    .pc_in(pc_adder_2_out),
+    .pc_out(next_pc_branch2)
+);
+wire [31:0] next_pc_branch1;
+adder_int32 u_pc_adder_1 (
     .a(pc_out),
-    .b(imm_out_32),
-    .sum(next_pc_branch)
+    .b(imm_shifted),
+    .sum(next_pc_branch1)
 );
-wire pc_select;
+
+
+wire [2:0] pc_select;
 
 and_gate u_branch_and (
     .a(branch),
-    .b(zero),
+    .b(branch_taken),
     .out(pc_select)
 );
 
-mux2_1 u_pc_mux (
+mux8_3 u_pc_mux (
     .in0(pc_plus4),
-    .in1(next_pc_branch),
+    .in1(next_pc_branch1),
+    .in2(next_pc_branch2),
+    .in3(pc_plus4),
+    .in4(pc_plus4),
+    .in5(pc_plus4),
+    .in6(pc_plus4),
+    .in7(pc_plus4),
     .sel(pc_select),
     .out(next_pc)
 );
