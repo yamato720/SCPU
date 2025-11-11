@@ -18,14 +18,14 @@
       "PC_ctrl_0": "",
       "bram_8_4096_mem_shell_0": "",
       "ImmGenerator_0": "",
-      "Opcode_ctrl_0": "",
       "Ins_buffer_0": "",
-      "ALU_ctrl_0": "",
       "Decoder_0": "",
+      "Registers_0": "",
+      "Opcode_ctrl_0": "",
+      "ALU_ctrl_0": "",
       "ALU_0": "",
       "DataMemory_0": "",
       "Metronome_0": "",
-      "Registers_0": "",
       "bram_8_4096_ins_shell_0": ""
     },
     "ports": {
@@ -332,47 +332,6 @@
           }
         }
       },
-      "Opcode_ctrl_0": {
-        "vlnv": "xilinx.com:module_ref:Opcode_ctrl:1.0",
-        "xci_name": "top_Opcode_ctrl_0_0",
-        "xci_path": "ip/top_Opcode_ctrl_0_0/top_Opcode_ctrl_0_0.xci",
-        "inst_hier_path": "Opcode_ctrl_0",
-        "reference_info": {
-          "ref_type": "hdl",
-          "ref_name": "Opcode_ctrl",
-          "boundary_crc": "0x0"
-        },
-        "ports": {
-          "opcode": {
-            "direction": "I",
-            "left": "6",
-            "right": "0"
-          },
-          "branch": {
-            "direction": "O"
-          },
-          "mem_read": {
-            "direction": "O"
-          },
-          "mem2reg": {
-            "direction": "O"
-          },
-          "aluop": {
-            "direction": "O",
-            "left": "1",
-            "right": "0"
-          },
-          "mem_write": {
-            "direction": "O"
-          },
-          "alu_src": {
-            "direction": "O"
-          },
-          "reg_write": {
-            "direction": "O"
-          }
-        }
-      },
       "Ins_buffer_0": {
         "vlnv": "xilinx.com:module_ref:Ins_buffer:1.0",
         "xci_name": "top_Ins_buffer_0_0",
@@ -433,39 +392,6 @@
           },
           "busy": {
             "direction": "O"
-          }
-        }
-      },
-      "ALU_ctrl_0": {
-        "vlnv": "xilinx.com:module_ref:ALU_ctrl:1.0",
-        "xci_name": "top_ALU_ctrl_0_0",
-        "xci_path": "ip/top_ALU_ctrl_0_0/top_ALU_ctrl_0_0.xci",
-        "inst_hier_path": "ALU_ctrl_0",
-        "reference_info": {
-          "ref_type": "hdl",
-          "ref_name": "ALU_ctrl",
-          "boundary_crc": "0x0"
-        },
-        "ports": {
-          "aluop": {
-            "direction": "I",
-            "left": "1",
-            "right": "0"
-          },
-          "funct3": {
-            "direction": "I",
-            "left": "2",
-            "right": "0"
-          },
-          "funct7": {
-            "direction": "I",
-            "left": "6",
-            "right": "0"
-          },
-          "alu_control": {
-            "direction": "O",
-            "left": "3",
-            "right": "0"
           }
         }
       },
@@ -537,6 +463,143 @@
           }
         }
       },
+      "Registers_0": {
+        "vlnv": "xilinx.com:module_ref:Registers:1.0",
+        "xci_name": "top_Registers_0_0",
+        "xci_path": "ip/top_Registers_0_0/top_Registers_0_0.xci",
+        "inst_hier_path": "Registers_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "Registers",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "clk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "ASSOCIATED_RESET": {
+                "value": "rst",
+                "value_src": "constant"
+              }
+            }
+          },
+          "rst": {
+            "type": "rst",
+            "direction": "I"
+          },
+          "reg_write": {
+            "direction": "I"
+          },
+          "read_reg1": {
+            "direction": "I",
+            "left": "4",
+            "right": "0"
+          },
+          "read_reg2": {
+            "direction": "I",
+            "left": "4",
+            "right": "0"
+          },
+          "write_reg": {
+            "direction": "I",
+            "left": "4",
+            "right": "0"
+          },
+          "write_data": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "tick_memwb": {
+            "direction": "I"
+          },
+          "read_data1": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          },
+          "read_data2": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          }
+        }
+      },
+      "Opcode_ctrl_0": {
+        "vlnv": "xilinx.com:module_ref:Opcode_ctrl:1.0",
+        "xci_name": "top_Opcode_ctrl_0_0",
+        "xci_path": "ip/top_Opcode_ctrl_0_0/top_Opcode_ctrl_0_0.xci",
+        "inst_hier_path": "Opcode_ctrl_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "Opcode_ctrl",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "opcode": {
+            "direction": "I",
+            "left": "6",
+            "right": "0"
+          },
+          "branch": {
+            "direction": "O"
+          },
+          "mem_read": {
+            "direction": "O"
+          },
+          "mem2reg": {
+            "direction": "O"
+          },
+          "aluop": {
+            "direction": "O",
+            "left": "2",
+            "right": "0"
+          },
+          "mem_write": {
+            "direction": "O"
+          },
+          "alu_src": {
+            "direction": "O"
+          },
+          "reg_write": {
+            "direction": "O"
+          }
+        }
+      },
+      "ALU_ctrl_0": {
+        "vlnv": "xilinx.com:module_ref:ALU_ctrl:1.0",
+        "xci_name": "top_ALU_ctrl_0_0",
+        "xci_path": "ip/top_ALU_ctrl_0_0/top_ALU_ctrl_0_0.xci",
+        "inst_hier_path": "ALU_ctrl_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "ALU_ctrl",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "aluop": {
+            "direction": "I",
+            "left": "2",
+            "right": "0"
+          },
+          "funct3": {
+            "direction": "I",
+            "left": "2",
+            "right": "0"
+          },
+          "funct7": {
+            "direction": "I",
+            "left": "6",
+            "right": "0"
+          },
+          "alu_control": {
+            "direction": "O",
+            "left": "3",
+            "right": "0"
+          }
+        }
+      },
       "ALU_0": {
         "vlnv": "xilinx.com:module_ref:ALU:1.0",
         "xci_name": "top_ALU_0_0",
@@ -577,7 +640,7 @@
             "left": "3",
             "right": "0"
           },
-          "tick_exmem": {
+          "tick_idex": {
             "direction": "I"
           },
           "alu_result": {
@@ -663,7 +726,10 @@
           "en": {
             "direction": "O"
           },
-          "we": {
+          "wea": {
+            "direction": "O"
+          },
+          "web": {
             "direction": "O"
           },
           "addr_a": {
@@ -730,69 +796,6 @@
           },
           "tick_memwb": {
             "direction": "O"
-          }
-        }
-      },
-      "Registers_0": {
-        "vlnv": "xilinx.com:module_ref:Registers:1.0",
-        "xci_name": "top_Registers_0_0",
-        "xci_path": "ip/top_Registers_0_0/top_Registers_0_0.xci",
-        "inst_hier_path": "Registers_0",
-        "reference_info": {
-          "ref_type": "hdl",
-          "ref_name": "Registers",
-          "boundary_crc": "0x0"
-        },
-        "ports": {
-          "clk": {
-            "type": "clk",
-            "direction": "I",
-            "parameters": {
-              "ASSOCIATED_RESET": {
-                "value": "rst",
-                "value_src": "constant"
-              }
-            }
-          },
-          "rst": {
-            "type": "rst",
-            "direction": "I"
-          },
-          "reg_write": {
-            "direction": "I"
-          },
-          "read_reg1": {
-            "direction": "I",
-            "left": "4",
-            "right": "0"
-          },
-          "read_reg2": {
-            "direction": "I",
-            "left": "4",
-            "right": "0"
-          },
-          "write_reg": {
-            "direction": "I",
-            "left": "4",
-            "right": "0"
-          },
-          "write_data": {
-            "direction": "I",
-            "left": "31",
-            "right": "0"
-          },
-          "tick_memwb": {
-            "direction": "I"
-          },
-          "read_data1": {
-            "direction": "O",
-            "left": "31",
-            "right": "0"
-          },
-          "read_data2": {
-            "direction": "O",
-            "left": "31",
-            "right": "0"
           }
         }
       },
@@ -919,10 +922,15 @@
           "mux2_1_1/in1"
         ]
       },
-      "DataMemory_0_we": {
+      "DataMemory_0_wea": {
         "ports": [
-          "DataMemory_0/we",
-          "bram_8_4096_mem_shell_0/wea",
+          "DataMemory_0/wea",
+          "bram_8_4096_mem_shell_0/wea"
+        ]
+      },
+      "DataMemory_0_web": {
+        "ports": [
+          "DataMemory_0/web",
           "bram_8_4096_mem_shell_0/web"
         ]
       },
@@ -960,8 +968,8 @@
       "Decoder_0_rs2": {
         "ports": [
           "Decoder_0/rs2",
-          "DataMemory_0/write_data",
-          "Registers_0/read_reg2"
+          "Registers_0/read_reg2",
+          "DataMemory_0/write_data"
         ]
       },
       "ImmGenerator_0_imm_out_32": {
@@ -1010,8 +1018,7 @@
       },
       "Metronome_0_tick_idex": {
         "ports": [
-          "Metronome_0/tick_idex",
-          "ALU_0/tick_exmem"
+          "Metronome_0/tick_idex"
         ]
       },
       "Metronome_0_tick_ifid": {
@@ -1107,6 +1114,7 @@
       },
       "and_gate_0_y": {
         "ports": [
+          "and_gate_0/out",
           "mux2_1_0/sel"
         ]
       },
@@ -1142,10 +1150,10 @@
           "bram_8_4096_mem_shell_0/clkb",
           "Ins_buffer_0/clk",
           "Decoder_0/clk",
+          "Registers_0/clk",
+          "ALU_0/clk",
           "DataMemory_0/clk",
           "Metronome_0/clk",
-          "ALU_0/clk",
-          "Registers_0/clk",
           "bram_8_4096_ins_shell_0/clka"
         ]
       },
@@ -1173,10 +1181,10 @@
           "PC_ctrl_0/rst",
           "Ins_buffer_0/rst",
           "Decoder_0/rst",
+          "Registers_0/rst",
           "ALU_0/rst",
           "DataMemory_0/rst",
-          "Metronome_0/rst",
-          "Registers_0/rst"
+          "Metronome_0/rst"
         ]
       }
     }

@@ -1,5 +1,5 @@
 module ALU_ctrl (
-    input  wire [1:0] aluop,
+    input  wire [2:0] aluop,
     input  wire [2:0] funct3,
     input  wire [6:0] funct7,
     output reg  [3:0] alu_control
@@ -13,9 +13,11 @@ wire [5:0] check;
 assign check = {aluop, funct7[5], funct3};
 always @(*) begin
     case (aluop)
-        2'b00: alu_control = 4'b0000; // load/store ADD
-        2'b01: alu_control = 4'b0001; // branch SUB
-        2'b10: begin // R-type
+        3'b000: alu_control = 4'b0000; // load/store ADD
+        3'b001: alu_control = 4'b0001; // branch SUB
+        3'b100: alu_control = 4'b1100; // LUI
+        3'b101: alu_control = 4'b1101; // AUIPC
+        3'b010: begin // R-type
             case ({funct7[5], funct3})
                 4'b0000: alu_control = 4'b0000; // ADD
                 4'b1000: alu_control = 4'b0001; // SUB
@@ -30,7 +32,7 @@ always @(*) begin
                 default: alu_control = 4'b0000;
             endcase
         end
-        2'b11: begin // I-type
+        3'b011: begin // I-type
             case (funct3)
                 3'b000: alu_control = 4'b0000; // ADDI
                 3'b111: alu_control = 4'b0011; // ANDI

@@ -99,7 +99,7 @@ Decoder u_Decoder(
 wire        branch;
 wire        mem_read;
 wire        mem2reg;
-wire [1:0]  aluop;
+wire [2:0]  aluop;
 wire        mem_write;
 wire        alu_src;
 wire        reg_write;
@@ -173,6 +173,7 @@ ALU u_alu (
     .alu_control_in(alu_control),
     .alu_result(alu_result),
     .tick_idex(tick_idex),
+    .pc(pc_out),
     .zero(zero),
     .cout(cout),
     .overflow(overflow)
@@ -201,7 +202,8 @@ mux2_1 u_pc_mux (
 );
 
 wire en;
-wire we;
+wire wea;
+wire web;
 wire [31:0] addr_a;
 wire [7:0]  data_a;
 wire [31:0] addr_b;
@@ -213,13 +215,13 @@ wire [31:0] read_data;
 bram_8_4096_mem_shell bram_8_4096_mem_shell_inst (
     .clka(clk),
     .ena(en),
-    .wea(we),
+    .wea(wea),
     .addra(addr_a),
     .dina(data_a),
     .douta(recv_data_a),
     .clkb(clk),
     .enb(en),
-    .web(we),
+    .web(web),
     .addrb(addr_b),
     .dinb(data_b),
     .doutb(recv_data_b)
@@ -241,7 +243,8 @@ DataMemory DataMemory_inst(
     .recv_data_b(recv_data_b),
     .read_data(read_data),
     .en(en),
-    .we(we),
+    .wea(wea),
+    .web(web),
     .addr_a(addr_a),
     .data_a(data_a),
     .addr_b(addr_b),

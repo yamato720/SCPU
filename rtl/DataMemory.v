@@ -15,7 +15,8 @@ module DataMemory (
     input  wire        tick_exmem,
     output reg  [31:0] read_data,
     output wire        en,
-    output wire        we,
+    output reg         wea,
+    output reg         web,
     output reg  [31:0] addr_a,
     output reg  [7:0]  data_a,
     output reg  [31:0] addr_b,
@@ -33,7 +34,6 @@ module DataMemory (
     */
 
     assign en = (mem_read | mem_write) & tick_exmem;
-    assign we = mem_write & tick_exmem;
 
     reg [1:0] state;
     reg       wait_state;
@@ -47,13 +47,18 @@ module DataMemory (
             read_data <= 32'b0;
             state <= 2'b00;
             wait_state <= 1'b1;
-        end if((mem_read | mem_write) && tick_exmem) begin
+            wea <= 1'b0;
+            web <= 1'b0;
+        end
+        else if((mem_read | mem_write) && tick_exmem) begin
             case ({state, mem_width})
             5'b00000: begin  // signed byte
                 addr_a <= addr;
                 addr_b <= addr + 32'd1;
                 data_a <= write_data[7:0];
                 data_b <= {8{write_data[7]}};
+                wea <= 1'b1 & mem_write;
+                web <= 1'b0;
                 if(wait_state == 1'b1) begin
                     wait_state <= 1'b0;
                 end else begin
@@ -66,6 +71,8 @@ module DataMemory (
                 state <= state + 1;
                 addr_a <= addr + 32'd2;
                 addr_b <= addr + 32'd3;
+                wea <= 1'b0;
+                web <= 1'b0;
             end
             5'b10000: begin
                 data_a <= {8{write_data[7]}};
@@ -81,6 +88,8 @@ module DataMemory (
                 addr_b <= addr + 32'd1;
                 data_a <= write_data[7:0];
                 data_b <= 8'd0;
+                wea <= 1'b1 & mem_write;
+                web <= 1'b0;
                 if(wait_state == 1'b1) begin
                     wait_state <= 1'b0;
                 end else begin
@@ -92,6 +101,8 @@ module DataMemory (
                 state <= state + 1;
                 addr_a <= addr + 32'd2;
                 addr_b <= addr + 32'd3;
+                wea <= 1'b0;
+                web <= 1'b0;
             end
             5'b10100: begin
                 data_a <= 8'd0;
@@ -107,6 +118,8 @@ module DataMemory (
                 addr_b <= addr + 32'd1;
                 data_a <= write_data[7:0];
                 data_b <= write_data[15:8];
+                wea <= 1'b1 & mem_write;
+                web <= 1'b1 & mem_write;
                 if(wait_state == 1'b1) begin
                     wait_state <= 1'b0;
                 end else begin
@@ -118,6 +131,8 @@ module DataMemory (
                 state <= state + 1;
                 addr_a <= addr + 32'd2;
                 addr_b <= addr + 32'd3;
+                wea <= 1'b0;
+                web <= 1'b0;
             end
             5'b10001: begin
                 data_a <= {8{write_data[15]}};
@@ -125,7 +140,7 @@ module DataMemory (
                 state <= state + 1;
             end
             5'b11001: begin
-                read_data[31:16] <= {16{recv_data_b[7]}}; 
+                read_data[31:16] <= {16{read_data[15]}}; 
                 state <= 2'b00;
             end
             5'b00101: begin  // unsigned halfword
@@ -133,6 +148,8 @@ module DataMemory (
                 addr_b <= addr + 32'd1;
                 data_a <= write_data[7:0];
                 data_b <= write_data[15:8];
+                wea <= 1'b1 & mem_write;
+                web <= 1'b1 & mem_write;
                 if(wait_state == 1'b1) begin
                     wait_state <= 1'b0;
                 end else begin
@@ -144,6 +161,8 @@ module DataMemory (
                 state <= state + 1;
                 addr_a <= addr + 32'd2;
                 addr_b <= addr + 32'd3;
+                wea <= 1'b0;
+                web <= 1'b0;
             end
             5'b10101: begin
                 data_a <= 8'd0;
@@ -159,6 +178,8 @@ module DataMemory (
                 addr_b <= addr + 32'd1;
                 data_a <= write_data[7:0];
                 data_b <= write_data[15:8];
+                wea <= 1'b1 & mem_write;
+                web <= 1'b1 & mem_write;
                 if(wait_state == 1'b1) begin
                     wait_state <= 1'b0;
                 end else begin
@@ -179,12 +200,16 @@ module DataMemory (
             5'b11010: begin
                 read_data[31:16] <= {recv_data_b, recv_data_a}; 
                 state <= 2'b00;
+                wea <= 1'b0;    
+                web <= 1'b0;
             end
             5'b00110: begin  // unsigned word
                 addr_a <= addr;
                 addr_b <= addr + 32'd1;
                 data_a <= write_data[7:0];
                 data_b <= write_data[15:8];
+                wea <= 1'b1 & mem_write;
+                web <= 1'b1 & mem_write;
                 if(wait_state == 1'b1) begin
                     wait_state <= 1'b0;
                 end else begin
@@ -205,6 +230,8 @@ module DataMemory (
             5'b11110: begin
                 read_data[31:16] <= {recv_data_b, recv_data_a}; 
                 state <= 2'b00;
+                wea <= 1'b0;    
+                web <= 1'b0;
             end
             default:begin 
                 addr_a <= addr_a;
@@ -214,6 +241,8 @@ module DataMemory (
                 read_data <= read_data;
                 state <= 2'b00;
                 wait_state <= 1'b1;
+                wea <= 1'b0;
+                web <= 1'b0;
             end
             endcase
         end
