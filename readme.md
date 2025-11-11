@@ -17,5 +17,5 @@
 |---------|------|-------------------------------|
 |DataMemory | 修改 | 修改读取，使得能够以字节、半字、字的方式读取 |
 |Metronome|添加|统一节拍器，可支持流水线，但还未做冲突处理|
-|PC_ctrl，Decoder，Registers，ALU，DataMemory|修改|增加引脚、改为时序逻辑，以相应节拍器|
+|PC_ctrl，Decoder，Registers，ALU，DataMemory|修改|增加引脚、改为时序逻辑，以响应节拍器|
 |ALU，ALU_ctrl，Opcode_ctrl|修改|支持lui和auipc|
