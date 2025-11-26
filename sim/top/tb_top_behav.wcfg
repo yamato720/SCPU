@@ -11,15 +11,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="19,773 ps"></ZoomStartTime>
-      <ZoomEndTime time="20,682 ps"></ZoomEndTime>
-      <Cursor1Time time="20,530 ps"></Cursor1Time>
+      <ZoomStartTime time="19,745 ps"></ZoomStartTime>
+      <ZoomEndTime time="20,687 ps"></ZoomEndTime>
+      <Cursor1Time time="20,519 ps"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="252"></NameColumnWidth>
-      <ValueColumnWidth column_width="219"></ValueColumnWidth>
+      <ValueColumnWidth column_width="215"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="13" />
+   <WVObjectSize size="14" />
    <wvobject type="logic" fp_name="/tb_top/clk">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
@@ -294,8 +294,8 @@
          <obj_property name="Radix">BINARYRADIX</obj_property>
       </wvobject>
       <wvobject type="array" fp_name="/tb_top/top_inst/u_alu_ctrl/alu_control">
-         <obj_property name="ElementShortName">alu_control[3:0]</obj_property>
-         <obj_property name="ObjectShortName">alu_control[3:0]</obj_property>
+         <obj_property name="ElementShortName">alu_control[4:0]</obj_property>
+         <obj_property name="ObjectShortName">alu_control[4:0]</obj_property>
          <obj_property name="Radix">BINARYRADIX</obj_property>
       </wvobject>
    </wvobject>
@@ -342,9 +342,9 @@
       <obj_property name="label">alu</obj_property>
       <obj_property name="DisplayName">label</obj_property>
       <obj_property name="isExpanded"></obj_property>
-      <wvobject type="logic" fp_name="/tb_top/top_inst/u_alu/rst">
-         <obj_property name="ElementShortName">rst</obj_property>
-         <obj_property name="ObjectShortName">rst</obj_property>
+      <wvobject type="logic" fp_name="/tb_top/uut/u_alu/tick_idex">
+         <obj_property name="ElementShortName">tick_idex</obj_property>
+         <obj_property name="ObjectShortName">tick_idex</obj_property>
       </wvobject>
       <wvobject type="array" fp_name="/tb_top/top_inst/u_alu/a">
          <obj_property name="ElementShortName">a[31:0]</obj_property>
@@ -360,13 +360,18 @@
          <obj_property name="ElementShortName">pc[31:0]</obj_property>
          <obj_property name="ObjectShortName">pc[31:0]</obj_property>
       </wvobject>
+      <wvobject type="array" fp_name="/tb_top/uut/u_alu/branch_taken">
+         <obj_property name="ElementShortName">branch_taken[2:0]</obj_property>
+         <obj_property name="ObjectShortName">branch_taken[2:0]</obj_property>
+      </wvobject>
       <wvobject type="array" fp_name="/tb_top/uut/u_alu/pc_reg">
          <obj_property name="ElementShortName">pc_reg[31:0]</obj_property>
          <obj_property name="ObjectShortName">pc_reg[31:0]</obj_property>
       </wvobject>
       <wvobject type="array" fp_name="/tb_top/top_inst/u_alu/alu_control">
-         <obj_property name="ElementShortName">alu_control[3:0]</obj_property>
-         <obj_property name="ObjectShortName">alu_control[3:0]</obj_property>
+         <obj_property name="ElementShortName">alu_control[4:0]</obj_property>
+         <obj_property name="ObjectShortName">alu_control[4:0]</obj_property>
+         <obj_property name="Radix">BINARYRADIX</obj_property>
       </wvobject>
       <wvobject type="array" fp_name="/tb_top/top_inst/u_alu/alu_result">
          <obj_property name="ElementShortName">alu_result[31:0]</obj_property>
@@ -537,7 +542,6 @@
    <wvobject type="group" fp_name="group144">
       <obj_property name="label">data_mem</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <obj_property name="isExpanded"></obj_property>
       <wvobject type="logic" fp_name="/tb_top/top_inst/DataMemory_inst/mem_write">
          <obj_property name="ElementShortName">mem_write</obj_property>
          <obj_property name="ObjectShortName">mem_write</obj_property>
@@ -806,6 +810,73 @@
       <wvobject type="array" fp_name="/tb_top/uut/u_metronome/mem_access">
          <obj_property name="ElementShortName">mem_access[3:0]</obj_property>
          <obj_property name="ObjectShortName">mem_access[3:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group249">
+      <obj_property name="label">branch</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="group" fp_name="group253">
+         <obj_property name="label">and</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+         <wvobject type="logic" fp_name="/tb_top/uut/u_branch_and/a">
+            <obj_property name="ElementShortName">a</obj_property>
+            <obj_property name="ObjectShortName">a</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/tb_top/uut/u_branch_and/b">
+            <obj_property name="ElementShortName">b[2:0]</obj_property>
+            <obj_property name="ObjectShortName">b[2:0]</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/tb_top/uut/u_branch_and/out">
+            <obj_property name="ElementShortName">out[2:0]</obj_property>
+            <obj_property name="ObjectShortName">out[2:0]</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject type="group" fp_name="group255">
+         <obj_property name="label">mux</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+         <wvobject type="array" fp_name="/tb_top/uut/u_pc_mux/sel">
+            <obj_property name="ElementShortName">sel[2:0]</obj_property>
+            <obj_property name="ObjectShortName">sel[2:0]</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/tb_top/uut/u_pc_mux/in0">
+            <obj_property name="ElementShortName">in0[31:0]</obj_property>
+            <obj_property name="ObjectShortName">in0[31:0]</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/tb_top/uut/u_pc_mux/in1">
+            <obj_property name="ElementShortName">in1[31:0]</obj_property>
+            <obj_property name="ObjectShortName">in1[31:0]</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/tb_top/uut/u_pc_mux/in2">
+            <obj_property name="ElementShortName">in2[31:0]</obj_property>
+            <obj_property name="ObjectShortName">in2[31:0]</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/tb_top/uut/u_pc_mux/in3">
+            <obj_property name="ElementShortName">in3[31:0]</obj_property>
+            <obj_property name="ObjectShortName">in3[31:0]</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/tb_top/uut/u_pc_mux/in4">
+            <obj_property name="ElementShortName">in4[31:0]</obj_property>
+            <obj_property name="ObjectShortName">in4[31:0]</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/tb_top/uut/u_pc_mux/in5">
+            <obj_property name="ElementShortName">in5[31:0]</obj_property>
+            <obj_property name="ObjectShortName">in5[31:0]</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/tb_top/uut/u_pc_mux/in6">
+            <obj_property name="ElementShortName">in6[31:0]</obj_property>
+            <obj_property name="ObjectShortName">in6[31:0]</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/tb_top/uut/u_pc_mux/in7">
+            <obj_property name="ElementShortName">in7[31:0]</obj_property>
+            <obj_property name="ObjectShortName">in7[31:0]</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/tb_top/uut/u_pc_mux/out">
+            <obj_property name="ElementShortName">out[31:0]</obj_property>
+            <obj_property name="ObjectShortName">out[31:0]</obj_property>
+         </wvobject>
       </wvobject>
    </wvobject>
 </wave_config>

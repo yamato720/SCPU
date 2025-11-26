@@ -74,6 +74,24 @@ always @(*) begin
         alu_src   = 1'b0;
         reg_write = 1'b0;
     end
+    7'b1100111: begin
+        branch    = 1'b1;
+        mem_read  = 1'b0;
+        mem2reg   = 1'b0;
+        aluop     = 3'b110; // jalr
+        mem_write = 1'b0;
+        alu_src   = 1'b0;
+        reg_write = 1'b1;
+    end
+    7'b1101111: begin
+        branch    = 1'b1;
+        mem_read  = 1'b0;
+        mem2reg   = 1'b0;
+        aluop     = 3'b111; // jal
+        mem_write = 1'b0;
+        alu_src   = 1'b0;
+        reg_write = 1'b1;
+    end
     default: begin
         branch    = 1'b0;
         mem_read  = 1'b0;

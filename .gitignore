@@ -56,3 +56,47 @@
 *.swp
 *~
 .DS_Store
+
+# Scala/SBT generated files
+*.class
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# SBT specific
+target/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+.history
+.cache
+.lib/
+dist/*
+project/target/
+project/project/target/
+
+# Chisel generated files
+*.fir
+*.anno.json
+test_run_dir/
+**/test_run_dir/
+
+# FIRRTL compiler outputs
+firrtl_black_box_resource_files.f
+
+# IDE files (Scala)
+.idea/
+*.iml
+.bsp/
+.metals/
+.vscode/
+*.code-workspace
+
+# Metals/Bloop
+.bloop/
+metals.sbt
