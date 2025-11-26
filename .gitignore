@@ -100,3 +100,8 @@ firrtl_black_box_resource_files.f
 # Metals/Bloop
 .bloop/
 metals.sbt
+
+generated/
+target/
+test_run_dir/
+project/
