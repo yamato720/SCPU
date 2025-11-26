@@ -197,7 +197,7 @@ always @(posedge clk) begin
                 cout <= result_temp[32];
                 overflow <= 1'b0;
                 alu_result <= result_temp[31:0];
-                branch_taken <= 3'd2;
+                branch_taken <= 3'd3;
             end
             5'b10010: begin // JAL
                 result_temp <= pc_reg + 32'd4;
