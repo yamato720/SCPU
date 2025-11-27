@@ -39,7 +39,7 @@ always @(posedge clk) begin
         end
         7'b1101111: begin // J-type
             imm_out_64 <= {{43{instruction[31]}}, instruction[31], instruction[19:12], instruction[20], instruction[30:21], 1'b0};
-            imm_out_32 <= {{19{instruction[31]}}, instruction[31], instruction[19:12], instruction[20], instruction[30:21], 1'b0};
+            imm_out_32 <= {{11{instruction[31]}}, instruction[31], instruction[19:12], instruction[20], instruction[30:21], 1'b0};
         end
         default: begin
             imm_out_64 <= imm_out_64;

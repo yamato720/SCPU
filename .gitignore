@@ -1,107 +1,52 @@
-# Vivado generated files and directories
-*.jou
-*.log
-*.str
-*.rpt
-*.pb
-*.wdb
-*.dcp
-*.ltx
-*.html
-*.xml
-*.csv
+# Chisel 生成的文件
+generated/
+test_run_dir/
+target/
 
-# Vivado caches and temp directories
-.Xil/
-.cache/
-.ipcache/
-.hw/
-.sim/
-.runs/
-.gen/
-
-# Project-specific generated dirs at workspace root
-/SCPU.runs/
-/SCPU.gen/
-/SCPU.hw/
-/SCPU.sim/
-/SCPU.ip_user_files/
-
-# Project-specific generated dirs under project folder
-/SCPU/SCPU.runs/
-/SCPU/SCPU.gen/
-/SCPU/SCPU.hw/
-/SCPU/SCPU.sim/
-/SCPU/SCPU.ip_user_files/
-
-# Block design generated subdirs
-**/sources_1/bd/*/ip/
-**/sources_1/bd/*/hw_handoff/
-**/sources_1/bd/*/sim/
-**/sources_1/bd/*/synth/
-**/sources_1/bd/*/ipauto/
-**/bd/*/ip/*
-
-# Simulator scripts and outputs
-**/sim_scripts/
-**/xsim/
-**/modelsim/
-**/questa/
-**/riviera/
-**/vcs/
-**/xcelium/
-**/activehdl/
-
-# Misc/editor
-*.swp
-*~
-.DS_Store
-
-# Scala/SBT generated files
+# Scala 编译输出
 *.class
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
+*.log
 
-# SBT specific
+# sbt 特定文件
+.cache
+.history
+.lib/
+dist/*
 target/
 lib_managed/
 src_managed/
 project/boot/
 project/plugins/project/
-.history
-.cache
-.lib/
-dist/*
 project/target/
-project/project/target/
+project/project/
 
-# Chisel generated files
-*.fir
-*.anno.json
-test_run_dir/
-**/test_run_dir/
-
-# FIRRTL compiler outputs
-firrtl_black_box_resource_files.f
-
-# IDE files (Scala)
+# IDE 特定文件
 .idea/
 *.iml
 .bsp/
 .metals/
 .vscode/
-*.code-workspace
 
-# Metals/Bloop
-.bloop/
-metals.sbt
+# Vivado 生成的文件
+*.jou
+*.log
+*.str
+*.xpr
+SCPU/SCPU.cache/
+SCPU/SCPU.hw/
+SCPU/SCPU.ip_user_files/
+SCPU/SCPU.runs/
+SCPU/SCPU.sim/
+SCPU/SCPU.gen/
 
-generated/
-target/
-test_run_dir/
-project/
+# 仿真文件
+*.vcd
+*.fst
+*.ghw
+
+# 临时文件
+*~
+*.swp
+*.swo
+.DS_Store
+

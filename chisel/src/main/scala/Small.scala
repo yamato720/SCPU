@@ -43,7 +43,7 @@ class Muxer2_1(width: Int) extends Module {
   io.out := Mux(io.sel, io.in1, io.in0)
 }
 
-class Muxer8_3(width: Int) extends Module {
+class Muxer8_3(width: Int = 32) extends Module {
   val io = IO(new Bundle {
     val in0 = Input(UInt(width.W))
     val in1 = Input(UInt(width.W))
