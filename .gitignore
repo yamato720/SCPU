@@ -50,3 +50,5 @@ SCPU/SCPU.gen/
 *.swo
 .DS_Store
 
+.bloop/
+
