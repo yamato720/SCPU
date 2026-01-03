@@ -19,3 +19,5 @@
 |Metronome|添加|统一节拍器，可支持流水线，但还未做冲突处理|
 |PC_ctrl，Decoder，Registers，ALU，DataMemory|修改|增加引脚、改为时序逻辑，以响应节拍器|
 |ALU，ALU_ctrl，Opcode_ctrl|修改|支持lui和auipc|
+
+## v1.3：完成转跳指令的支持，转用chisel
