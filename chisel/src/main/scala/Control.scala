@@ -233,15 +233,15 @@ class Metronome extends Module {
 
 }
 
-class PC_Ctrl extends Module {
+class PC_Ctrl(width:Int = 32) extends Module {
   val io = IO(new Bundle {
-    var next_pc = Input(UInt(32.W))
+    var next_pc = Input(UInt(width.W))
     var pc_write_en = Input(Bool())
-    var pc_out = Output(UInt(32.W))
-    var pc_plus4 = Output(UInt(32.W))
+    var pc_out = Output(UInt(width.W))
+    var pc_plus4 = Output(UInt(width.W))
   })
 
-  var pc_current = RegInit(0.U(32.W))
+  var pc_current = RegInit(0.U(width.W))
   io.pc_out := pc_current
   io.pc_plus4 := pc_current + 4.U
 

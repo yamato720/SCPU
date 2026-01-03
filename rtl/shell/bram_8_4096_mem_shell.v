@@ -17,11 +17,11 @@ module bram_8_4096_mem_shell(clka, ena, wea, addra, dina, douta, clkb, enb, web,
   reg [7:0] ram [0:4095];
 
 
-  initial begin
-    for (integer i = 0; i < 4096; i = i + 1) begin
-      ram[i] = 8'b0;
-    end
-  end
+  // initial begin
+  //   for (integer i = 0; i < 4096; i = i + 1) begin
+  //     ram[i] = 8'b0;
+  //   end
+  // end
 
   always @(posedge clka) begin
     if (ena) begin
