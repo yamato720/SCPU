@@ -3,18 +3,18 @@ package scpu
 import chisel3._
 import chisel3.util._
 
-class ALU extends Module{
+class ALU(Width:Int = 32) extends Module{
   var io = IO(new Bundle{
-    val a_in = Input(UInt(32.W))
-    val b_in = Input(UInt(32.W))
+    val a_in = Input(UInt(Width.W))
+    val b_in = Input(UInt(Width.W))
     var alu_ctrl_in = Input(UInt(5.W))
     var tick_idex   = Input(Bool())
-    var pc          = Input(UInt(32.W))
+    var pc          = Input(UInt(Width.W))
     var zero       = Output(Bool())
     var cout      = Output(Bool())
     var overflow  = Output(Bool())
-    val alu_result = Output(UInt(32.W))
-    val branch_taken = Output(UInt(3.W))
+    val alu_result = Output(UInt(Width.W))
+    val branch_taken = Output(UInt(Width.W))
   })
 
   /*
@@ -23,13 +23,13 @@ class ALU extends Module{
   001: taken pc + imm
   010: taken rs1 + imm
   */
-  var a = RegInit(0.U(32.W))
-  var b = RegInit(0.U(32.W))
+  var a = RegInit(0.U(Width.W))
+  var b = RegInit(0.U(Width.W))
   var alu_ctrl = RegInit(0.U(5.W))
-  var pc_reg = RegInit(0.U(32.W))
+  var pc_reg = RegInit(0.U(Width.W))
 
   // 创建内部寄存器来保存输出值
-  val alu_result_reg = RegInit(0.U(32.W))
+  val alu_result_reg = RegInit(0.U(Width.W))
   val zero_reg = RegInit(0.U(1.W))
   val cout_reg = RegInit(0.U(1.W))
   val overflow_reg = RegInit(0.U(1.W))
@@ -42,17 +42,8 @@ class ALU extends Module{
   io.overflow := overflow_reg
   io.branch_taken := branch_taken_reg
 
-  when(reset.asBool){
-    alu_result_reg := 0.U
-    zero_reg := 0.U
-    cout_reg := 0.U
-    overflow_reg := 0.U
-    branch_taken_reg := 0.U
-    a := 0.U
-    b := 0.U
-    alu_ctrl := 0.U
-    pc_reg := 0.U
-  }.elsewhen(io.tick_idex) {
+
+  when(io.tick_idex) {
     a := io.a_in
     b := io.b_in
     alu_ctrl := io.alu_ctrl_in
@@ -60,18 +51,18 @@ class ALU extends Module{
     // tick_idex时不更新输出寄存器，自动维持上一个值
   }.otherwise{
     when(alu_ctrl === "b00000".U) { // ADD
-      val add_result = a +& b  // 使用 +& 进行33位加法
-      alu_result_reg := add_result(31, 0)
-      zero_reg := (add_result(31, 0) === 0.U)
-      cout_reg := add_result(32)  // 第32位是进位
-      overflow_reg := (a(31) === b(31)) && (add_result(31) =/= a(31))
+      val add_result = a +& b  // 使用 +& 进行 Width+1 位加法
+      alu_result_reg := add_result(Width-1, 0)
+      zero_reg := (add_result(Width-1, 0) === 0.U)
+      cout_reg := add_result(Width)  // 第 Width 位是进位
+      overflow_reg := (a(Width-1) === b(Width-1)) && (add_result(Width-1) =/= a(Width-1))
       branch_taken_reg := 0.U
     }.elsewhen(alu_ctrl === "b00001".U) { // SUB
-      val sub_result = a -& b  // 使用 -& 进行33位减法
-      alu_result_reg := sub_result(31, 0)
-      zero_reg := (sub_result(31, 0) === 0.U)
-      cout_reg := sub_result(32)  // 第32位是借位
-      overflow_reg := (a(31) =/= b(31)) && (sub_result(31) =/= a(31))
+      val sub_result = a -& b  // 使用 -& 进行 Width+1 位减法
+      alu_result_reg := sub_result(Width-1, 0)
+      zero_reg := (sub_result(Width-1, 0) === 0.U)
+      cout_reg := sub_result(Width)  // 第 Width 位是借位
+      overflow_reg := (a(Width-1) =/= b(Width-1)) && (sub_result(Width-1) =/= a(Width-1))
       branch_taken_reg := 0.U
     }.elsewhen(alu_ctrl === "b00010".U) { // NOT A
       alu_result_reg := ~a
@@ -112,8 +103,8 @@ class ALU extends Module{
       overflow_reg := 0.U
       branch_taken_reg := Mux(beq_result === 1.U, "b001".U, 0.U)
     }.elsewhen(alu_ctrl === "b01000".U) { // SLL
-      alu_result_reg := a << b(4, 0)
-      zero_reg := ((a << b(4, 0)) === 0.U)
+      alu_result_reg := a << b(log2Ceil(Width)-1, 0)
+      zero_reg := ((a << b(log2Ceil(Width)-1, 0)) === 0.U)
       cout_reg := 0.U
       overflow_reg := 0.U
       branch_taken_reg := 0.U
@@ -125,14 +116,14 @@ class ALU extends Module{
       overflow_reg := 0.U
       branch_taken_reg := Mux(bltu_result === 1.U, "b001".U, 0.U)
     }.elsewhen(alu_ctrl === "b01010".U) { // SRL
-      alu_result_reg := a >> b(4, 0)
-      zero_reg := ((a >> b(4, 0)) === 0.U)
+      alu_result_reg := a >> b(log2Ceil(Width)-1, 0)
+      zero_reg := ((a >> b(log2Ceil(Width)-1, 0)) === 0.U)
       cout_reg := 0.U
       overflow_reg := 0.U
       branch_taken_reg := 0.U
     }.elsewhen(alu_ctrl === "b01011".U) { // SRA
-      alu_result_reg := (a.asSInt >> b(4, 0)).asUInt
-      zero_reg := ((a.asSInt >> b(4, 0)).asUInt === 0.U)
+      alu_result_reg := (a.asSInt >> b(log2Ceil(Width)-1, 0)).asUInt
+      zero_reg := ((a.asSInt >> b(log2Ceil(Width)-1, 0)).asUInt === 0.U)
       cout_reg := 0.U
       overflow_reg := 0.U
       branch_taken_reg := 0.U

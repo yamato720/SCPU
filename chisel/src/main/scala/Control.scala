@@ -90,37 +90,37 @@ class ALU_Ctrl extends Module{
   }
 }
 
-class ImmGenerator(width: Int = 32) extends Module {
+class ImmGenerator(Width: Int = 32) extends Module {
   val io = IO(new Bundle {
     val instr = Input(UInt(32.W))
-    val imm_out = Output(UInt(width.W))
+    val imm_out = Output(UInt(Width.W))
   })
-  var imm_out_reg = RegInit(0.U(width.W))
+  var imm_out_reg = RegInit(0.U(Width.W))
   io.imm_out := imm_out_reg
 
   when(reset.asBool){
     io.imm_out := 0.U
   }.otherwise{
     when(io.instr === "b0010011".U || io.instr === "b0000011".U || io.instr === "b1100111".U){ // I-type
-      imm_out_reg := Cat(Fill(width - 12, io.instr(31)), io.instr(31,20))
+      imm_out_reg := Cat(Fill(Width - 12, io.instr(31)), io.instr(31,20))
     }.elsewhen(io.instr === "b0100011".U){ // S-type
-      imm_out_reg := Cat(Fill(width - 12, io.instr(31)), io.instr(31,25), io.instr(11,7))
+      imm_out_reg := Cat(Fill(Width - 12, io.instr(31)), io.instr(31,25), io.instr(11,7))
     }.elsewhen(io.instr === "b1100011".U){ // B-type
-      imm_out_reg := Cat(Fill(width - 13, io.instr(31)), io.instr(31), io.instr(7), io.instr(30,25), io.instr(11,8), 0.U(1.W))
+      imm_out_reg := Cat(Fill(Width - 13, io.instr(31)), io.instr(31), io.instr(7), io.instr(30,25), io.instr(11,8), 0.U(1.W))
     }.elsewhen(io.instr === "b0110111".U || io.instr === "b0010111".U){ // U-type
-      if(width > 32){
-        imm_out_reg := Cat(Fill(width - 32, 0.U), io.instr(31,12), Fill(12, 0.U))
+      if(Width > 32){
+        imm_out_reg := Cat(Fill(Width - 32, 0.U), io.instr(31,12), Fill(12, 0.U))
       }else{
         imm_out_reg := Cat(io.instr(31,12), Fill(12, 0.U))
       }
     }.elsewhen(io.instr === "b1101111".U){ // J-type
-      imm_out_reg := Cat(Fill(width - 21, io.instr(31)), io.instr(31), io.instr(19,12), io.instr(20), io.instr(30,21), 0.U(1.W))
+      imm_out_reg := Cat(Fill(Width - 21, io.instr(31)), io.instr(31), io.instr(19,12), io.instr(20), io.instr(30,21), 0.U(1.W))
     }
   }
 
 }
 
-class Metronome extends Module {
+class Metronome(Width:Int = 32) extends Module {
   val io = IO(new Bundle {
     val stuck = Input(Bool())
     val tick_pc = Output(Bool())
@@ -133,10 +133,12 @@ class Metronome extends Module {
   PC: 5周期
   ID: 5周期
   EX: 5周期
-  MEM:5周期
+  MEM:5/9周期 32-bit/64-bit
   WB: 5周期
+
   */
-  val cycleMax = 25
+
+  var cycleMax = if (Width == 32) 25 else 29
   var tick_pc_reg = RegInit(false.B)
   var tick_ifid_reg = RegInit(false.B)
   var tick_idex_reg = RegInit(false.B)
@@ -179,9 +181,9 @@ class Metronome extends Module {
     ifid_flag_latch := ifid_flag
     idex_flag := (cycleCNT === 10.U)
     idex_flag_latch := idex_flag
-    exmem_flag := (cycleCNT === 15.U)
+    exmem_flag := (cycleCNT === (if(Width == 32) 15.U else 19.U))
     exmem_flag_latch := exmem_flag
-    memwb_flag := (cycleCNT === 20.U)
+    memwb_flag := (cycleCNT === (if(Width == 32) 20.U else 24.U))
     memwb_flag_latch := memwb_flag
     cycleCNT := Mux(cycleCNT === (cycleMax - 1).U, 0.U, cycleCNT + 1.U)
   }
@@ -216,7 +218,7 @@ class Metronome extends Module {
   }.elsewhen(exmem_flag_latch === false.B && exmem_flag === true.B){
     mem_accessCNT := 0.U
     tick_exmem_reg := true.B
-  }.elsewhen(mem_accessCNT === 4.U){
+  }.elsewhen(mem_accessCNT === (if(Width == 32) 4.U else 8.U)){
     tick_exmem_reg := false.B
     mem_accessCNT := 0.U
   }.otherwise {
@@ -233,21 +235,19 @@ class Metronome extends Module {
 
 }
 
-class PC_Ctrl(width:Int = 32) extends Module {
+class PC_Ctrl(Width:Int = 32) extends Module {
   val io = IO(new Bundle {
-    var next_pc = Input(UInt(width.W))
+    var next_pc = Input(UInt(Width.W))
     var pc_write_en = Input(Bool())
-    var pc_out = Output(UInt(width.W))
-    var pc_plus4 = Output(UInt(width.W))
+    var pc_out = Output(UInt(Width.W))
+    var pc_plus4 = Output(UInt(Width.W))
   })
 
-  var pc_current = RegInit(0.U(width.W))
+  var pc_current = RegInit(0.U(Width.W))
   io.pc_out := pc_current
   io.pc_plus4 := pc_current + 4.U
 
-  when(reset.asBool){
-    pc_current := 0.U
-  }.elsewhen(io.pc_write_en){
+  when(io.pc_write_en){
     pc_current := io.next_pc
   }.elsewhen(io.pc_write_en === true.B){
     pc_current := io.next_pc
@@ -255,5 +255,124 @@ class PC_Ctrl(width:Int = 32) extends Module {
 
 }
 
+class OpcodeCtrl() extends Module {
+  val io = IO(new Bundle {
+    val opcode = Input(UInt(7.W))
+    val branch = Output(Bool())
+    val memRead = Output(Bool())
+    val memtoReg = Output(Bool())
+    val aluop = Output(UInt(3.W))
+    val memWrite = Output(Bool())
+    val aluSrc = Output(Bool())
+    val regWrite = Output(Bool())
+  })
+  val branch = RegInit(false.B)
+  val memRead = RegInit(false.B)
+  val memtoReg = RegInit(false.B)
+  val aluop = RegInit(0.U(3.W))
+  val memWrite = RegInit(false.B)
+  val aluSrc = RegInit(false.B)
+  val regWrite = RegInit(false.B)
+  io.branch := branch
+  io.memRead := memRead
+  io.memtoReg := memtoReg
+  io.aluop := aluop
+  io.memWrite := memWrite
+  io.aluSrc := aluSrc
+  io.regWrite := regWrite
+
+  when(io.opcode === "b0110011".U){
+    // R-type
+    branch := false.B
+    memRead := false.B
+    memtoReg := false.B
+    aluop := "b010".U
+    memWrite := false.B
+    aluSrc := false.B
+    regWrite := true.B
+  }.elsewhen(io.opcode === "b0000011".U){
+    // LD-type
+    branch := false.B
+    memRead := true.B
+    memtoReg := true.B
+    aluop := "b000".U
+    memWrite := false.B
+    aluSrc := true.B
+    regWrite := true.B
+  }.elsewhen(io.opcode === "b0100011".U){
+    // S-type
+    branch := false.B
+    memRead := false.B
+    memtoReg := false.B
+    aluop := "b000".U
+    memWrite := true.B
+    aluSrc := true.B
+    regWrite := false.B
+  }.elsewhen(io.opcode === "b1100011".U){
+    // SB-type
+    branch := true.B
+    memRead := false.B
+    memtoReg := false.B
+    aluop := "b001".U
+    memWrite := false.B
+    aluSrc := false.B
+    regWrite := false.B
+  }.elsewhen(io.opcode === "b0010011".U){
+    // I-type ALU operations
+    branch := false.B
+    memRead := false.B
+    memtoReg := false.B
+    aluop := "b011".U
+    memWrite := false.B
+    aluSrc := true.B
+    regWrite := true.B
+  }.elsewhen(io.opcode === "b0110111".U){
+    // LUI
+    branch := false.B
+    memRead := false.B
+    memtoReg := false.B
+    aluop := "b100".U
+    memWrite := false.B
+    aluSrc := true.B
+    regWrite := true.B
+  }.elsewhen(io.opcode === "b0010111".U){
+    // AUIPC
+    branch := false.B
+    memRead := false.B
+    memtoReg := false.B
+    aluop := "b101".U
+    memWrite := false.B
+    aluSrc := true.B
+    regWrite := true.B
+  }.elsewhen(io.opcode === "b1100111".U){
+    // JALR
+    branch := true.B
+    memRead := false.B
+    memtoReg := false.B
+    aluop := "b110".U
+    memWrite := false.B
+    aluSrc := false.B
+    regWrite := true.B
+  }.elsewhen(io.opcode === "b1101111".U){
+    // JAL
+    branch := true.B
+    memRead := false.B
+    memtoReg := false.B
+    aluop := "b111".U
+    memWrite := false.B
+    aluSrc := false.B
+    regWrite := true.B
+
+  }.otherwise{
+    branch := false.B
+    memRead := false.B
+    memtoReg := false.B
+    aluop := "b000".U
+    memWrite := false.B
+    aluSrc := false.B
+    regWrite := false.B
+  }
+
+}
 
 

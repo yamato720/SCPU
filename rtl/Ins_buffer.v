@@ -77,6 +77,7 @@ always @(posedge clk) begin
             ins_out <= ins_temp;
             valid <= 1'b0;
             pc_base <= pc_in;
+            access_cnt <= 0;
         end
     end
 end
@@ -122,7 +123,6 @@ always @(posedge clk) begin
         addr_low <= pc_base;
         addr_high <= pc_base + 32'b1;
         wait_cycle <= 2'b00;
-        access_cnt <= 0;
     end else if (!finished && wait_cycle[0] == 1'b0) begin
         addr_low <= addr_low + 32'd2;
         addr_high <= addr_high + 32'd2;

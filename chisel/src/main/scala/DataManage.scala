@@ -108,17 +108,17 @@ class bram_8_4096_mem_shell extends BlackBox with HasBlackBoxResource {
 // Instruction cache wrapper using BlackBox
 // For synthesis, can switch to BlackBox by changing useBlackBox parameter
 // initFile: 可选的初始化文件路径 (相对于 resources 目录)
-class insCacheL1(useBlackBox: Boolean = false, initFile: Option[String] = None) extends Module {
+class insCacheL1(useBlackBox: Boolean = false, initFile: Option[String] = None, Width:Int = 32) extends Module {
   val io = IO(new Bundle {
     val ena  = Input(Bool())
     val wea  = Input(Bool())
-    val addra = Input(UInt(12.W))
+    val addra = Input(UInt(Width.W))
     val dina  = Input(UInt(8.W))
     val douta = Output(UInt(8.W))
 
     val enb  = Input(Bool())
     val web  = Input(Bool())
-    val addrb = Input(UInt(12.W))
+    val addrb = Input(UInt(Width.W))
     val dinb  = Input(UInt(8.W))
     val doutb = Output(UInt(8.W))
   })
@@ -231,22 +231,27 @@ class dataCacheL1(useBlackBox: Boolean = false, initFile: Option[String] = None)
   }
 }
 
-class InsBuffer(width:Int = 32, bufferSize:Int = 128) extends Module{
+class InsBuffer(Width:Int = 32, BufferSize:Int = 128, Debug:Boolean = false) extends Module{
+  // 定义IO Bundle - 始终包含所有端口，Debug模式下暴露额外的调试信号
   val io = IO(new Bundle{
-    val pc_in = Input(UInt(width.W))
+    val pc_in = Input(UInt(Width.W))
     val ins_low = Input(UInt(8.W))
     val ins_high = Input(UInt(8.W))
-    val addr_low = Output(UInt(32.W))
-    val addr_high = Output(UInt(32.W))
+    val addr_low = Output(UInt(Width.W))
+    val addr_high = Output(UInt(Width.W))
     val ins_out = Output(UInt(32.W))
     val valid = Output(Bool())
     val busy = Output(Bool())
+    // 调试端口 - 始终存在，但只在Debug模式下使用
+    val index = if (Debug) Some(Output(UInt(log2Ceil(BufferSize).W))) else None
+    val access_cnt = if (Debug) Some(Output(UInt((log2Ceil(BufferSize)+1).W))) else None
   })
 
-  var index_range = log2Floor(bufferSize).W
+
+  val index_range = log2Ceil(BufferSize + 1).W
 
   val addr_low = RegInit(0.U(32.W))
-  val addr_high = RegInit(0.U(32.W))
+  val addr_high = RegInit(1.U(32.W))
   val ins_out = RegInit(0.U(32.W))
   val valid = RegInit(false.B)
   val busy = RegInit(true.B)
@@ -260,19 +265,25 @@ class InsBuffer(width:Int = 32, bufferSize:Int = 128) extends Module{
 
 
 
-  val ins_reg = RegInit(VecInit(Seq.fill(bufferSize)("h00000013".U(32.W))))
+  val ins_reg = RegInit(VecInit(Seq.fill(BufferSize)("h00000013".U(32.W))))
   val finished = RegInit(false.B)
   val pc_base = RegInit(0.U(32.W))
   val index = RegInit(0.U(index_range)) // 需要多1位以检测溢出
   val access_cnt = RegInit(0.U(index_range)) // 当前已读取的指令数
 
+  // 连接调试端口（如果启用）
+  if (Debug) {
+    io.access_cnt.get := access_cnt
+    io.index.get := index
+  }
+
   index := (io.pc_in-pc_base) >> 2
   val ins_temp = RegInit("h00000013".U(32.W))
 
   when(reset.asBool){
-    for(i <- 0 until bufferSize){
-      ins_reg(i) := "h00000013".U(32.W)
-    }
+//    for(i <- 0 until bufferSize){
+//      ins_reg(i) := "h00000013".U(32.W)
+//    }
     ins_out := "h00000013".U(32.W)
     valid := false.B
     ins_temp := "h00000013".U(32.W)
@@ -284,6 +295,7 @@ class InsBuffer(width:Int = 32, bufferSize:Int = 128) extends Module{
     ins_out := ins_temp
     valid := false.B
     pc_base := io.pc_in
+    access_cnt := 0.U
   }
 
   val valid_latch = RegInit(false.B)
@@ -301,19 +313,19 @@ class InsBuffer(width:Int = 32, bufferSize:Int = 128) extends Module{
 
   val wait_cycle = RegInit(0.U(2.W))
   val low_high_toggle = RegInit(false.B)
+
   when(reset.asBool){
     finished := false.B
     low_high_toggle := false.B
     addr_low := 0.U
-    addr_high := 0.U
+    addr_high := 1.U
     access_cnt := 0.U
     wait_cycle := 0.U
-  }.elsewhen(access_cnt === bufferSize.U){
+  }.elsewhen(access_cnt === BufferSize.U){
     finished := true.B
     addr_low := pc_base
     addr_high := pc_base + 1.U
     wait_cycle := 0.U
-    access_cnt := 0.U
   }.elsewhen(!finished && wait_cycle(0) === false.B){
     addr_low := addr_low + 2.U
     addr_high := addr_high + 2.U
@@ -338,8 +350,585 @@ class InsBuffer(width:Int = 32, bufferSize:Int = 128) extends Module{
     wait_cycle := 0.U
   }
 
-
-
-
 }
 
+class RegisterFile(numRegs:Int = 32, Width:Int = 32) extends Module{
+  val io = IO(new Bundle{
+    val rs1_addr = Input(UInt(log2Ceil(numRegs).W))
+    val rs2_addr = Input(UInt(log2Ceil(numRegs).W))
+    val rd_addr = Input(UInt(log2Ceil(numRegs).W))
+    val rd_write_en = Input(Bool())
+    val rd_din = Input(UInt(Width.W))
+    val tick_memwb = Input(Bool())
+    val rs1_dout = Output(UInt(Width.W))
+    val rs2_dout = Output(UInt(Width.W))
+  })
+
+  val regs = RegInit(VecInit(Seq.fill(numRegs)(0.U(Width.W))))
+
+  // 读取寄存器
+  io.rs1_dout := Mux(io.rs1_addr === 0.U, 0.U, regs(io.rs1_addr))
+  io.rs2_dout := Mux(io.rs2_addr === 0.U, 0.U, regs(io.rs2_addr))
+
+  regs(0) := 0.U  // x0寄存器始终为0
+
+  // 写入寄存器
+  when(io.rd_write_en && (io.rd_addr =/= 0.U) && io.tick_memwb){
+    regs(io.rd_addr) := io.rd_din
+  }
+}
+
+class DataMemory32 extends Module{
+  val io = IO(new Bundle{
+    val mem_write_en = Input(Bool())
+    val mem_read_en = Input(Bool())
+    val addr = Input(UInt(32.W))
+    val alu_result = Input(UInt(32.W))
+    val recv_data_a = Input(UInt(8.W))
+    val recv_data_b = Input(UInt(8.W))
+    val access_type = Input(UInt(3.W))
+    /* access_type decoding (funct3)
+    000: byte (LB, SB)
+    001: halfword (LH, SH)
+    010: word (LW, SW)
+    011: doubleword (LD, SD)
+    100: byte unsigned (LBU)
+    101: halfword unsigned (LHU)
+    110: word unsigned (LWU)
+    */
+    val tick_exmem = Input(Bool())
+    val result = Output(UInt(32.W))
+    val alu_result_sel = Output(Bool())
+    val wea = Output(Bool())
+    val web = Output(Bool())
+    val addra = Output(UInt(32.W))
+    val addrb = Output(UInt(32.W))
+    val dina = Output(UInt(8.W))
+    val dinb = Output(UInt(8.W))
+  })
+
+  val result = RegInit(0.U(32.W))
+  val alu_result_sel = RegInit(false.B)
+  val wea = RegInit(false.B)
+  val web = RegInit(false.B)
+  val addra = RegInit(0.U(32.W))
+  val addrb = RegInit(0.U(32.W))
+  val dina = RegInit(0.U(8.W))
+  val dinb = RegInit(0.U(8.W))
+
+  io.result := result
+  io.alu_result_sel := alu_result_sel
+  io.wea := wea
+  io.web := web
+  io.addra := addra
+  io.addrb := addrb
+  io.dina := dina
+  io.dinb := dinb
+
+  alu_result_sel := (io.mem_read_en | io.mem_write_en) & io.tick_exmem
+
+  val state = RegInit(0.U(3.W))
+  val wait_state = RegInit(1.U)
+
+  when((io.mem_read_en | io.mem_write_en) && io.tick_exmem){
+    when(Cat(state, io.access_type)==="b000000".U){ // signed byte
+      addra := io.addr
+      addrb := io.addr + 1.U
+      dina := io.alu_result(7,0)
+      dinb := Fill(8, io.alu_result(7))  // 将第7位（符号位）扩展8次
+      wea := io.mem_write_en
+      web := false.B
+      when(wait_state === 1.U){
+        wait_state := 0.U
+      }.otherwise{
+        state := state + 1.U
+      }
+    }.elsewhen(Cat(state, io.access_type)==="b001000".U){
+      result := Cat(Fill(24,io.recv_data_a(7)), io.recv_data_a)
+      state := state + 1.U
+      addra := io.addr + 2.U
+      addrb := io.addr + 3.U
+      wea := false.B
+      web := false.B
+    }.elsewhen(Cat(state, io.access_type)==="b010000".U){
+      dina := Fill(8, io.alu_result(7))
+      dinb := Fill(8, io.alu_result(7))
+      wea := false.B
+      web := false.B
+      state := state + 1.U
+    }.elsewhen(Cat(state, io.access_type)==="b011000".U){
+      result := Cat(Fill(16,result(7)), result(15,0))
+      state := 0.U
+    }.elsewhen(Cat(state, io.access_type)==="b000100".U){  // unsigned byte
+      addra := io.addr
+      addrb := io.addr + 1.U
+      dina := io.alu_result(7,0)
+      dinb := 0.U
+      wea := io.mem_write_en
+      web := false.B
+      when(wait_state === 1.U){
+        wait_state := 0.U
+      }.otherwise{
+        state := state + 1.U
+      }
+    }.elsewhen(Cat(state, io.access_type)==="b001100".U){
+      result := Cat(Fill(24,0.U), io.recv_data_a)
+      state := state + 1.U
+      addra := io.addr + 2.U
+      addrb := io.addr + 3.U
+      wea := false.B
+      web := false.B
+    }.elsewhen(Cat(state, io.access_type)==="b010100".U){
+      dina := 0.U
+      dinb := 0.U
+      state := state + 1.U
+    }.elsewhen(Cat(state, io.access_type)==="b011100".U){
+      result := Cat(0.U(16.W), result(15,0))
+      state := 0.U
+    }.elsewhen(Cat(state, io.access_type)==="b000001".U){// signed halfword
+      addra := io.addr
+      addrb := io.addr + 1.U
+      dina := io.alu_result(7,0)
+      dinb := io.alu_result(15,8)
+      wea := io.mem_write_en
+      web := io.mem_write_en
+      when(wait_state === 1.U){
+        wait_state := 0.U
+      }.otherwise {
+        state := state + 1.U
+      }
+    }.elsewhen(Cat(state, io.access_type)==="b001001".U){
+      result := Cat(Fill(16,io.recv_data_b(7)), io.recv_data_b, io.recv_data_a)
+      state := state + 1.U
+      addra := io.addr + 2.U
+      addrb := io.addr + 3.U
+      wea := false.B
+      web := false.B
+    }.elsewhen(Cat(state, io.access_type)==="b010001".U){
+      dina := Fill(8, io.alu_result(15))
+      dinb := Fill(8, io.alu_result(15))
+      state := state + 1.U
+    }.elsewhen(Cat(state, io.access_type)==="b011001".U){
+      result := Cat(Fill(16,result(15)), result(15,0))
+      state := 0.U
+    }.elsewhen(Cat(state, io.access_type)==="b000101".U){ // unsigned halfword
+      addra := io.addr
+      addrb := io.addr + 1.U
+      dina := io.alu_result(7,0)
+      dinb := io.alu_result(15,8)
+      wea := io.mem_write_en
+      web := io.mem_write_en
+      when(wait_state === 1.U){
+        wait_state := 0.U
+      }.otherwise {
+        state := state + 1.U
+      }
+    }.elsewhen(Cat(state, io.access_type)==="b001101".U){
+      result := Cat(io.recv_data_b, io.recv_data_a)
+      state := state + 1.U
+      addra := io.addr + 2.U
+      addrb := io.addr + 3.U
+      wea := false.B
+      web := false.B
+    }.elsewhen(Cat(state, io.access_type)==="b010101".U){
+      dina := 0.U
+      dinb := 0.U
+      state := state + 1.U
+    }.elsewhen(Cat(state, io.access_type)==="b011101".U){
+      result := Cat(0.U(16.W), result(15,0))
+      state := 0.U
+    }.elsewhen(Cat(state, io.access_type)==="b000010".U){   // signed word
+      addra := io.addr
+      addrb := io.addr + 1.U
+      dina := io.alu_result(7,0)
+      dinb := io.alu_result(15,8)
+      wea := io.mem_write_en
+      web := io.mem_write_en
+      when(wait_state === 1.U){
+        wait_state := 0.U
+      }.otherwise {
+        state := state + 1.U
+      }
+    }.elsewhen(Cat(state, io.access_type)==="b001010".U){
+      result := Cat(Fill(0,io.recv_data_b(7)), io.recv_data_b, io.recv_data_a)
+      state := state + 1.U
+      addra := io.addr + 2.U
+      addrb := io.addr + 3.U
+    }.elsewhen(Cat(state, io.access_type)==="b010010".U){
+      dina := io.alu_result(23,16)
+      dinb := io.alu_result(31,24)
+      state := state + 1.U
+    }.elsewhen(Cat(state, io.access_type)==="b011010".U){
+      result := Cat(Fill(0, io.recv_data_b(7)) ,io.recv_data_b, io.recv_data_a, result(15,0))
+      state := 0.U
+      wea := false.B
+      web := false.B
+    }.elsewhen(Cat(state, io.access_type)==="b011010".U){   // unsigned word
+      addra := io.addr
+      addrb := io.addr + 1.U
+      dina := io.alu_result(7,0)
+      dinb := io.alu_result(15,8)
+      wea := io.mem_write_en
+      web := io.mem_write_en
+      when(wait_state === 1.U){
+        wait_state := 0.U
+      }.otherwise {
+        state := state + 1.U
+      }
+    }.elsewhen(Cat(state, io.access_type)==="b001110".U){
+      result := Cat(io.recv_data_b, io.recv_data_a)
+      state := state + 1.U
+      addra := io.addr + 2.U
+      addrb := io.addr + 3.U
+    }.elsewhen(Cat(state, io.access_type)==="b010110".U){
+      dina := io.alu_result(23,16)
+      dinb := io.alu_result(31,24)
+      state := state + 1.U
+    }.elsewhen(Cat(state, io.access_type)==="b011110".U){
+      result := Cat(0.U(0.W), result(31,0))
+      state := 0.U
+    }.otherwise{
+      state := 0.U
+      wait_state := 1.U
+      wea := false.B
+      web := false.B
+    }
+  }.otherwise{
+    state := 0.U
+    wait_state := 1.U
+    wea := false.B
+    web := false.B
+  }
+}
+
+class DataMemory64 extends Module{
+  val io = IO(new Bundle{
+    val mem_write_en = Input(Bool())
+    val mem_read_en = Input(Bool())
+    val addr = Input(UInt(64.W))
+    val alu_result = Input(UInt(64.W))
+    val recv_data_a = Input(UInt(8.W))
+    val recv_data_b = Input(UInt(8.W))
+    val access_type = Input(UInt(3.W))
+    /* access_type decoding (funct3)
+    000: byte (LB, SB)
+    001: halfword (LH, SH)
+    010: word (LW, SW)
+    011: doubleword (LD, SD)
+    100: byte unsigned (LBU)
+    101: halfword unsigned (LHU)
+    110: word unsigned (LWU)
+    */
+    val tick_exmem = Input(Bool())
+    val result = Output(UInt(64.W))
+    val alu_result_sel = Output(Bool())
+    val wea = Output(Bool())
+    val web = Output(Bool())
+    val addra = Output(UInt(64.W))
+    val addrb = Output(UInt(64.W))
+    val dina = Output(UInt(8.W))
+    val dinb = Output(UInt(8.W))
+  })
+
+  val result = RegInit(0.U(64.W))
+  val alu_result_sel = RegInit(false.B)
+  val wea = RegInit(false.B)
+  val web = RegInit(false.B)
+  val addra = RegInit(0.U(64.W))
+  val addrb = RegInit(0.U(64.W))
+  val dina = RegInit(0.U(8.W))
+  val dinb = RegInit(0.U(8.W))
+
+  io.result := result
+  io.alu_result_sel := alu_result_sel
+  io.wea := wea
+  io.web := web
+  io.addra := addra
+  io.addrb := addrb
+  io.dina := dina
+  io.dinb := dinb
+
+  alu_result_sel := (io.mem_read_en | io.mem_write_en) & io.tick_exmem
+
+  val state = RegInit(0.U(3.W))
+  val wait_state = RegInit(1.U)
+
+  when((io.mem_read_en | io.mem_write_en) && io.tick_exmem){
+    when(Cat(state, io.access_type)==="b000000".U){ // signed byte
+      addra := io.addr
+      addrb := io.addr + 1.U
+      dina := io.alu_result(7,0)
+      dinb := Fill(8, io.alu_result(7))  // 将第7位（符号位）扩展8次
+      wea := io.mem_write_en
+      web := false.B
+      when(wait_state === 1.U){
+        wait_state := 0.U
+      }.otherwise{
+        state := state + 1.U
+      }
+    }.elsewhen(Cat(state, io.access_type)==="b001000".U){
+      result := Cat(Fill(56,io.recv_data_a(7)), io.recv_data_a)
+      state := state + 1.U
+      addra := io.addr + 2.U
+      addrb := io.addr + 3.U
+      wea := false.B
+      web := false.B
+    }.elsewhen(Cat(state, io.access_type)==="b010000".U){
+      dina := Fill(8, io.alu_result(7))
+      dinb := Fill(8, io.alu_result(7))
+      wea := false.B
+      web := false.B
+      state := state + 1.U
+    }.elsewhen(Cat(state, io.access_type)==="b011000".U){
+      result := Cat(Fill(48,result(7)), result(15,0))
+      state := 0.U
+    }.elsewhen(Cat(state, io.access_type)==="b000100".U){  // unsigned byte
+      addra := io.addr
+      addrb := io.addr + 1.U
+      dina := io.alu_result(7,0)
+      dinb := 0.U
+      wea := io.mem_write_en
+      web := false.B
+      when(wait_state === 1.U){
+        wait_state := 0.U
+      }.otherwise{
+        state := state + 1.U
+      }
+    }.elsewhen(Cat(state, io.access_type)==="b001100".U){
+      result := Cat(Fill(56,0.U), io.recv_data_a)
+      state := state + 1.U
+      addra := io.addr + 2.U
+      addrb := io.addr + 3.U
+      wea := false.B
+      web := false.B
+    }.elsewhen(Cat(state, io.access_type)==="b010100".U){
+      dina := 0.U
+      dinb := 0.U
+      state := state + 1.U
+    }.elsewhen(Cat(state, io.access_type)==="b011100".U){
+      result := Cat(0.U(48.W), result(15,0))
+      state := 0.U
+    }.elsewhen(Cat(state, io.access_type)==="b000001".U){// signed halfword
+      addra := io.addr
+      addrb := io.addr + 1.U
+      dina := io.alu_result(7,0)
+      dinb := io.alu_result(15,8)
+      wea := io.mem_write_en
+      web := io.mem_write_en
+      when(wait_state === 1.U){
+        wait_state := 0.U
+      }.otherwise {
+        state := state + 1.U
+      }
+    }.elsewhen(Cat(state, io.access_type)==="b001001".U){
+      result := Cat(Fill(48,io.recv_data_b(7)), io.recv_data_b, io.recv_data_a)
+      state := state + 1.U
+      addra := io.addr + 2.U
+      addrb := io.addr + 3.U
+      wea := false.B
+      web := false.B
+    }.elsewhen(Cat(state, io.access_type)==="b010001".U){
+      dina := Fill(8, io.alu_result(15))
+      dinb := Fill(8, io.alu_result(15))
+      state := state + 1.U
+    }.elsewhen(Cat(state, io.access_type)==="b011001".U){
+      result := Cat(Fill(48,result(15)), result(15,0))
+      state := 0.U
+    }.elsewhen(Cat(state, io.access_type)==="b000101".U){ // unsigned halfword
+      addra := io.addr
+      addrb := io.addr + 1.U
+      dina := io.alu_result(7,0)
+      dinb := io.alu_result(15,8)
+      wea := io.mem_write_en
+      web := io.mem_write_en
+      when(wait_state === 1.U){
+        wait_state := 0.U
+      }.otherwise {
+        state := state + 1.U
+      }
+    }.elsewhen(Cat(state, io.access_type)==="b001101".U){
+      result := Cat(io.recv_data_b, io.recv_data_a)
+      state := state + 1.U
+      addra := io.addr + 2.U
+      addrb := io.addr + 3.U
+      wea := false.B
+      web := false.B
+    }.elsewhen(Cat(state, io.access_type)==="b010101".U){
+      dina := 0.U
+      dinb := 0.U
+      state := state + 1.U
+    }.elsewhen(Cat(state, io.access_type)==="b011101".U){
+      result := Cat(0.U(48.W), result(15,0))
+      state := 0.U
+    }.elsewhen(Cat(state, io.access_type)==="b000010".U){   // signed word
+      addra := io.addr
+      addrb := io.addr + 1.U
+      dina := io.alu_result(7,0)
+      dinb := io.alu_result(15,8)
+      wea := io.mem_write_en
+      web := io.mem_write_en
+      when(wait_state === 1.U){
+        wait_state := 0.U
+      }.otherwise {
+        state := state + 1.U
+      }
+    }.elsewhen(Cat(state, io.access_type)==="b001010".U){
+      result := Cat(Fill(32,io.recv_data_b(7)), io.recv_data_b, io.recv_data_a)
+      state := state + 1.U
+      addra := io.addr + 2.U
+      addrb := io.addr + 3.U
+    }.elsewhen(Cat(state, io.access_type)==="b010010".U){
+      dina := io.alu_result(23,16)
+      dinb := io.alu_result(31,24)
+      state := state + 1.U
+    }.elsewhen(Cat(state, io.access_type)==="b011010".U){
+      result := Cat(Fill(32, io.recv_data_b(7)) ,io.recv_data_b, io.recv_data_a, result(15,0))
+      state := 0.U
+      wea := false.B
+      web := false.B
+    }.elsewhen(Cat(state, io.access_type)==="b011010".U){   // unsigned word
+      addra := io.addr
+      addrb := io.addr + 1.U
+      dina := io.alu_result(7,0)
+      dinb := io.alu_result(15,8)
+      wea := io.mem_write_en
+      web := io.mem_write_en
+      when(wait_state === 1.U){
+        wait_state := 0.U
+      }.otherwise {
+        state := state + 1.U
+      }
+    }.elsewhen(Cat(state, io.access_type)==="b001110".U){
+      result := Cat(io.recv_data_b, io.recv_data_a)
+      state := state + 1.U
+      addra := io.addr + 2.U
+      addrb := io.addr + 3.U
+    }.elsewhen(Cat(state, io.access_type)==="b010110".U){
+      dina := io.alu_result(23,16)
+      dinb := io.alu_result(31,24)
+      state := state + 1.U
+    }.elsewhen(Cat(state, io.access_type)==="b011110".U){
+      result := Cat(0.U(32.W), result(31,0))
+      state := 0.U
+    }.elsewhen(Cat(state, io.access_type)==="b000011".U){ // double
+      addra := io.addr
+      addrb := io.addr + 1.U
+      dina := io.alu_result(7,0)
+      dinb := io.alu_result(15,8)
+      wea := io.mem_write_en
+      web := io.mem_write_en
+      when(wait_state === 1.U){
+        wait_state := 0.U
+      }.otherwise {
+        state := state + 1.U
+      }
+    }.elsewhen(Cat(state, io.access_type)==="b001011".U){
+      result := Cat(io.recv_data_b, io.recv_data_a)
+      state := state + 1.U
+      addra := io.addr + 2.U
+      addrb := io.addr + 3.U
+    }.elsewhen(Cat(state, io.access_type)==="b010011".U){
+      dina := io.alu_result(23,16)
+      dinb := io.alu_result(31,24)
+      state := state + 1.U
+    }.elsewhen(Cat(state, io.access_type)==="b011011".U){
+      result := Cat(io.recv_data_b, io.recv_data_a, result(15,0))
+      state := state + 1.U
+      addra := io.addr + 4.U
+      addrb := io.addr + 5.U
+    }.elsewhen(Cat(state, io.access_type)==="b100011".U){
+      dina := io.alu_result(39,32)
+      dinb := io.alu_result(47,40)
+      state := state + 1.U
+    }.elsewhen(Cat(state, io.access_type)==="b101011".U){
+      result := Cat(io.recv_data_b, io.recv_data_a, result(31,0))
+      state := state + 1.U
+      addra := io.addr + 6.U
+      addrb := io.addr + 7.U
+    }.elsewhen(Cat(state, io.access_type)==="b101011".U){
+      dina := io.alu_result(55,48)
+      dinb := io.alu_result(63,56)
+      state := state + 1.U
+    }.elsewhen(Cat(state, io.access_type)==="b101011".U){
+      result := Cat(io.recv_data_b, io.recv_data_a, result(47,0))
+      state := 0.U
+      wea := false.B
+      web := false.B
+    }
+  }.otherwise{
+    state := 0.U
+    wait_state := 1.U
+    wea := false.B
+    web := false.B
+  }
+}
+
+class DataMemory(Width:Int = 32) extends Module{
+  val io = IO(new Bundle{
+    val mem_write_en = Input(Bool())
+    val mem_read_en = Input(Bool())
+    val addr = Input(UInt(Width.W))
+    val alu_result = Input(UInt(Width.W))
+    val recv_data_a = Input(UInt(8.W))
+    val recv_data_b = Input(UInt(8.W))
+    val access_type = Input(UInt(3.W))
+    /* access_type decoding (funct3)
+    000: byte (LB, SB)
+    001: halfword (LH, SH)
+    010: word (LW, SW)
+    011: doubleword (LD, SD)
+    100: byte unsigned (LBU)
+    101: halfword unsigned (LHU)
+    110: word unsigned (LWU)
+    */
+    val tick_exmem = Input(Bool())
+    val result = Output(UInt(Width.W))
+    val alu_result_sel = Output(Bool())
+    val wea = Output(Bool())
+    val web = Output(Bool())
+    val addra = Output(UInt(Width.W))
+    val addrb = Output(UInt(Width.W))
+    val dina = Output(UInt(8.W))
+    val dinb = Output(UInt(8.W))
+  })
+
+  if(Width == 32){
+    val dataMemory32 = Module(new DataMemory32)
+    dataMemory32.io.mem_write_en := io.mem_write_en
+    dataMemory32.io.mem_read_en := io.mem_read_en
+    dataMemory32.io.addr := io.addr
+    dataMemory32.io.alu_result := io.alu_result
+    dataMemory32.io.recv_data_a := io.recv_data_a
+    dataMemory32.io.recv_data_b := io.recv_data_b
+    dataMemory32.io.access_type := io.access_type
+    dataMemory32.io.tick_exmem := io.tick_exmem
+
+    io.result := dataMemory32.io.result
+    io.alu_result_sel := dataMemory32.io.alu_result_sel
+    io.wea := dataMemory32.io.wea
+    io.web := dataMemory32.io.web
+    io.addra := dataMemory32.io.addra
+    io.addrb := dataMemory32.io.addrb
+    io.dina := dataMemory32.io.dina
+    io.dinb := dataMemory32.io.dinb
+  }else{
+    val dataMemory64 = Module(new DataMemory64)
+    dataMemory64.io.mem_write_en := io.mem_write_en
+    dataMemory64.io.mem_read_en := io.mem_read_en
+    dataMemory64.io.addr := io.addr
+    dataMemory64.io.alu_result := io.alu_result
+    dataMemory64.io.recv_data_a := io.recv_data_a
+    dataMemory64.io.recv_data_b := io.recv_data_b
+    dataMemory64.io.access_type := io.access_type
+    dataMemory64.io.tick_exmem := io.tick_exmem
+
+    io.result := dataMemory64.io.result
+    io.alu_result_sel := dataMemory64.io.alu_result_sel
+    io.wea := dataMemory64.io.wea
+    io.web := dataMemory64.io.web
+    io.addra := dataMemory64.io.addra
+    io.addrb := dataMemory64.io.addrb
+    io.dina := dataMemory64.io.dina
+    io.dinb := dataMemory64.io.dinb
+  }
+}

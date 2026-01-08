@@ -7,9 +7,9 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 class BRAMDirectTest extends AnyFlatSpec with ChiselScalatestTester {
   "insCacheL1" should "load correct bytes from hex file" in {
-    test(new insCacheL1(useBlackBox = true)) { c =>
+    test(new insCacheL1(initFile = Some("init_data/program.hex"))) { c =>
       c.reset.poke(true.B)
-      c.clock.step(1)
+      c.clock.step(100)
       c.reset.poke(false.B)
 
       println("\n=== Testing direct BRAM reads ===")
