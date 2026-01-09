@@ -137,13 +137,25 @@ def generate_hex_file(instructions_text, output_path):
 # ============ 主程序 ============
 
 if __name__ == "__main__":
-    # 生成 hex 文件
-    generate_hex_file(instructions, output_file)
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    # 切换到脚本所在目录
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(script_dir)
     
-    # 同时复制到 Chisel 资源目录（如果存在）
-    chisel_resource_dir = "../chisel/src/main/resources/init_data"
-    if os.path.exists(chisel_resource_dir):
-        chisel_output_path = os.path.join(chisel_resource_dir, output_file)
-        generate_hex_file(instructions, chisel_output_path)
-        print(f"\n✓ 已同步到 Chisel 资源目录: {chisel_output_path}")
+    # 生成 hex 文件到当前目录
+    generate_hex_file(instructions, output_file)
+    
+    # 复制到 Chisel main 资源目录
+    chisel_main_resource_dir = "../chisel/src/main/resources/init_data"
+    if not os.path.exists(chisel_main_resource_dir):
+        os.makedirs(chisel_main_resource_dir)
+    chisel_main_output = os.path.join(chisel_main_resource_dir, output_file)
+    generate_hex_file(instructions, chisel_main_output)
+    print(f"\n✓ 已同步到 Chisel main 资源目录: {chisel_main_output}")
+    
+    # 复制到 Chisel test 资源目录
+    chisel_test_resource_dir = "../chisel/src/test/resources/init_data"
+    if not os.path.exists(chisel_test_resource_dir):
+        os.makedirs(chisel_test_resource_dir)
+    chisel_test_output = os.path.join(chisel_test_resource_dir, output_file)
+    generate_hex_file(instructions, chisel_test_output)
+    print(f"✓ 已同步到 Chisel test 资源目录: {chisel_test_output}")

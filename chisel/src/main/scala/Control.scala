@@ -55,7 +55,7 @@ class ALU_Ctrl extends Module{
     }
   }.elsewhen(io.aluop === "b011".U){
     when (io.funct3 === "b000".U){
-      io.alu_ctrl := "b01100".U  // ADDI
+      io.alu_ctrl := "b00000".U  // ADDI
     }.elsewhen(io.funct3 === "b111".U){
       io.alu_ctrl := "b00011".U  // ANDI
     }.elsewhen(io.funct3 === "b110".U){
@@ -92,7 +92,7 @@ class ALU_Ctrl extends Module{
 
 class ImmGenerator(Width: Int = 32) extends Module {
   val io = IO(new Bundle {
-    val instr = Input(UInt(32.W))
+    val instruction = Input(UInt(32.W))
     val imm_out = Output(UInt(Width.W))
   })
   var imm_out_reg = RegInit(0.U(Width.W))
@@ -101,26 +101,26 @@ class ImmGenerator(Width: Int = 32) extends Module {
   when(reset.asBool){
     io.imm_out := 0.U
   }.otherwise{
-    when(io.instr === "b0010011".U || io.instr === "b0000011".U || io.instr === "b1100111".U){ // I-type
-      imm_out_reg := Cat(Fill(Width - 12, io.instr(31)), io.instr(31,20))
-    }.elsewhen(io.instr === "b0100011".U){ // S-type
-      imm_out_reg := Cat(Fill(Width - 12, io.instr(31)), io.instr(31,25), io.instr(11,7))
-    }.elsewhen(io.instr === "b1100011".U){ // B-type
-      imm_out_reg := Cat(Fill(Width - 13, io.instr(31)), io.instr(31), io.instr(7), io.instr(30,25), io.instr(11,8), 0.U(1.W))
-    }.elsewhen(io.instr === "b0110111".U || io.instr === "b0010111".U){ // U-type
+    when(io.instruction(6, 0) === "b0010011".U || io.instruction(6, 0) === "b0000011".U || io.instruction(6, 0) === "b1100111".U){ // I-type
+      imm_out_reg := Cat(Fill(Width - 12, io.instruction(31)), io.instruction(31,20))
+    }.elsewhen(io.instruction(6, 0) === "b0100011".U){ // S-type
+      imm_out_reg := Cat(Fill(Width - 12, io.instruction(31)), io.instruction(31,25), io.instruction(11,7))
+    }.elsewhen(io.instruction(6, 0) === "b1100011".U){ // B-type
+      imm_out_reg := Cat(Fill(Width - 13, io.instruction(31)), io.instruction(31), io.instruction(7), io.instruction(30,25), io.instruction(11,8), 0.U(1.W))
+    }.elsewhen(io.instruction(6, 0) === "b0110111".U || io.instruction(6, 0) === "b0010111".U){ // U-type
       if(Width > 32){
-        imm_out_reg := Cat(Fill(Width - 32, 0.U), io.instr(31,12), Fill(12, 0.U))
+        imm_out_reg := Cat(Fill(Width - 32, 0.U), io.instruction(31,12), Fill(12, 0.U))
       }else{
-        imm_out_reg := Cat(io.instr(31,12), Fill(12, 0.U))
+        imm_out_reg := Cat(io.instruction(31,12), Fill(12, 0.U))
       }
-    }.elsewhen(io.instr === "b1101111".U){ // J-type
-      imm_out_reg := Cat(Fill(Width - 21, io.instr(31)), io.instr(31), io.instr(19,12), io.instr(20), io.instr(30,21), 0.U(1.W))
+    }.elsewhen(io.instruction(6, 0) === "b1101111".U){ // J-type
+      imm_out_reg := Cat(Fill(Width - 21, io.instruction(31)), io.instruction(31), io.instruction(19,12), io.instruction(20), io.instruction(30,21), 0.U(1.W))
     }
   }
 
 }
 
-class Metronome(Width:Int = 32) extends Module {
+class Metronome(Width:Int = 32, Debug:Boolean = false) extends Module {
   val io = IO(new Bundle {
     val stuck = Input(Bool())
     val tick_pc = Output(Bool())
@@ -128,6 +128,8 @@ class Metronome(Width:Int = 32) extends Module {
     val tick_idex = Output(Bool())
     val tick_exmem = Output(Bool())
     val tick_memwb = Output(Bool())
+
+    val debug_cycleCNT = if (Debug) Some(Output(UInt(5.W))) else None
   })
   /*
   PC: 5周期
@@ -150,7 +152,7 @@ class Metronome(Width:Int = 32) extends Module {
   io.tick_exmem := tick_exmem_reg
   io.tick_memwb := tick_memwb_reg
 
-  var cycleCNT = RegInit(0.U(5.W))
+  var cycleCNT = RegInit(1.U(5.W))
   var pc_flag = RegInit(false.B)
   var pc_flag_latch = RegInit(false.B)
   var ifid_flag = RegInit(false.B)
@@ -162,19 +164,7 @@ class Metronome(Width:Int = 32) extends Module {
   var memwb_flag = RegInit(false.B)
   var memwb_flag_latch = RegInit(false.B)
 
-  when (reset.asBool) {
-    cycleCNT := 1.U
-    pc_flag := false.B
-    pc_flag_latch := false.B
-    ifid_flag := false.B
-    ifid_flag_latch := false.B
-    idex_flag := false.B
-    idex_flag_latch := false.B
-    exmem_flag := false.B
-    exmem_flag_latch := false.B
-    memwb_flag := false.B
-    memwb_flag_latch := false.B
-  }.elsewhen(io.stuck =/= true.B){
+  when(io.stuck =/= true.B){
     pc_flag := (cycleCNT === 0.U)
     pc_flag_latch := pc_flag
     ifid_flag := (cycleCNT === 5.U)

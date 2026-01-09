@@ -1,5 +1,6 @@
 package scpu
 
+import chisel3.util._
 import chisel3._
 
 class Adder(Width: Int) extends Module {
@@ -25,11 +26,10 @@ class AndGate(Width: Int) extends Module {
 class LeftShifter(Width: Int, count: Int) extends Module {
   val io = IO(new Bundle {
     val in = Input(UInt(Width.W))
-    val shift = Input(UInt(count.W)) // assuming shift amount is 5 bits
     val out = Output(UInt(Width.W))
   })
 
-  io.out := io.in << io.shift
+  io.out := io.in << count
 }
 
 class Mux2_1(Width: Int) extends Module {
@@ -74,5 +74,14 @@ class Mux8_3(Width: Int = 32) extends Module {
   } .otherwise {
     io.out := io.in7
   }
+}
+
+class PC_Align(Width: Int = 32) extends Module {
+  val io = IO(new Bundle {
+    val pc_in = Input(UInt(Width.W))
+    val pc_out = Output(UInt(Width.W))
+  })
+
+  io.pc_out := Cat(io.pc_in(Width-1,1), 0.U(1.W))
 }
 

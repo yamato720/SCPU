@@ -245,6 +245,7 @@ class InsBuffer(Width:Int = 32, BufferSize:Int = 128, Debug:Boolean = false) ext
     // 调试端口 - 始终存在，但只在Debug模式下使用
     val index = if (Debug) Some(Output(UInt(log2Ceil(BufferSize).W))) else None
     val access_cnt = if (Debug) Some(Output(UInt((log2Ceil(BufferSize)+1).W))) else None
+    val wait_cycle = if (Debug) Some(Output(UInt(2.W))) else None
   })
 
 
@@ -271,10 +272,14 @@ class InsBuffer(Width:Int = 32, BufferSize:Int = 128, Debug:Boolean = false) ext
   val index = RegInit(0.U(index_range)) // 需要多1位以检测溢出
   val access_cnt = RegInit(0.U(index_range)) // 当前已读取的指令数
 
+
+  val wait_cycle = RegInit(0.U(2.W))
+
   // 连接调试端口（如果启用）
   if (Debug) {
     io.access_cnt.get := access_cnt
     io.index.get := index
+    io.wait_cycle.get := wait_cycle
   }
 
   index := (io.pc_in-pc_base) >> 2
@@ -311,7 +316,6 @@ class InsBuffer(Width:Int = 32, BufferSize:Int = 128, Debug:Boolean = false) ext
     busy := false.B
   }
 
-  val wait_cycle = RegInit(0.U(2.W))
   val low_high_toggle = RegInit(false.B)
 
   when(reset.asBool){
@@ -352,30 +356,39 @@ class InsBuffer(Width:Int = 32, BufferSize:Int = 128, Debug:Boolean = false) ext
 
 }
 
-class RegisterFile(numRegs:Int = 32, Width:Int = 32) extends Module{
+class RegisterFile(numRegs:Int = 32, Width:Int = 32, Debug:Boolean = false) extends Module{
   val io = IO(new Bundle{
-    val rs1_addr = Input(UInt(log2Ceil(numRegs).W))
-    val rs2_addr = Input(UInt(log2Ceil(numRegs).W))
-    val rd_addr = Input(UInt(log2Ceil(numRegs).W))
+    val rs1 = Input(UInt(log2Ceil(numRegs).W))
+    val rs2 = Input(UInt(log2Ceil(numRegs).W))
+    val write_reg = Input(UInt(log2Ceil(numRegs).W))
     val rd_write_en = Input(Bool())
-    val rd_din = Input(UInt(Width.W))
+    val rd_write_din = Input(UInt(Width.W))
     val tick_memwb = Input(Bool())
     val rs1_dout = Output(UInt(Width.W))
     val rs2_dout = Output(UInt(Width.W))
+    // 调试端口 - 始终存在，但只在Debug模式下使用
+    val regs_out = if (Debug) Some(Output(Vec(numRegs, UInt(Width.W)))) else None
   })
 
   val regs = RegInit(VecInit(Seq.fill(numRegs)(0.U(Width.W))))
 
   // 读取寄存器
-  io.rs1_dout := Mux(io.rs1_addr === 0.U, 0.U, regs(io.rs1_addr))
-  io.rs2_dout := Mux(io.rs2_addr === 0.U, 0.U, regs(io.rs2_addr))
+  io.rs1_dout := Mux(io.rs1 === 0.U, 0.U, regs(io.rs1))
+  io.rs2_dout := Mux(io.rs2 === 0.U, 0.U, regs(io.rs2))
 
   regs(0) := 0.U  // x0寄存器始终为0
 
-  // 写入寄存器
-  when(io.rd_write_en && (io.rd_addr =/= 0.U) && io.tick_memwb){
-    regs(io.rd_addr) := io.rd_din
+  // 连接调试端口（如果启用）
+  if (Debug) {
+    io.regs_out.get := regs
   }
+
+  // 写入寄存器
+  when(io.rd_write_en && (io.write_reg =/= 0.U) && io.tick_memwb){
+    regs(io.write_reg) := io.rd_write_din
+  }
+
+
 }
 
 class DataMemory32 extends Module{
@@ -383,7 +396,7 @@ class DataMemory32 extends Module{
     val mem_write_en = Input(Bool())
     val mem_read_en = Input(Bool())
     val addr = Input(UInt(32.W))
-    val alu_result = Input(UInt(32.W))
+    val rs2_dout = Input(UInt(32.W))
     val recv_data_a = Input(UInt(8.W))
     val recv_data_b = Input(UInt(8.W))
     val access_type = Input(UInt(3.W))
@@ -398,7 +411,7 @@ class DataMemory32 extends Module{
     */
     val tick_exmem = Input(Bool())
     val result = Output(UInt(32.W))
-    val alu_result_sel = Output(Bool())
+    val enab = Output(Bool())
     val wea = Output(Bool())
     val web = Output(Bool())
     val addra = Output(UInt(32.W))
@@ -408,7 +421,7 @@ class DataMemory32 extends Module{
   })
 
   val result = RegInit(0.U(32.W))
-  val alu_result_sel = RegInit(false.B)
+  val enab = RegInit(false.B)
   val wea = RegInit(false.B)
   val web = RegInit(false.B)
   val addra = RegInit(0.U(32.W))
@@ -417,7 +430,7 @@ class DataMemory32 extends Module{
   val dinb = RegInit(0.U(8.W))
 
   io.result := result
-  io.alu_result_sel := alu_result_sel
+  io.enab := enab
   io.wea := wea
   io.web := web
   io.addra := addra
@@ -425,7 +438,7 @@ class DataMemory32 extends Module{
   io.dina := dina
   io.dinb := dinb
 
-  alu_result_sel := (io.mem_read_en | io.mem_write_en) & io.tick_exmem
+  enab := (io.mem_read_en | io.mem_write_en) & io.tick_exmem
 
   val state = RegInit(0.U(3.W))
   val wait_state = RegInit(1.U)
@@ -434,8 +447,8 @@ class DataMemory32 extends Module{
     when(Cat(state, io.access_type)==="b000000".U){ // signed byte
       addra := io.addr
       addrb := io.addr + 1.U
-      dina := io.alu_result(7,0)
-      dinb := Fill(8, io.alu_result(7))  // 将第7位（符号位）扩展8次
+      dina := io.rs2_dout(7,0)
+      dinb := Fill(8, io.rs2_dout(7))  // 将第7位（符号位）扩展8次
       wea := io.mem_write_en
       web := false.B
       when(wait_state === 1.U){
@@ -451,8 +464,8 @@ class DataMemory32 extends Module{
       wea := false.B
       web := false.B
     }.elsewhen(Cat(state, io.access_type)==="b010000".U){
-      dina := Fill(8, io.alu_result(7))
-      dinb := Fill(8, io.alu_result(7))
+      dina := Fill(8, io.rs2_dout(7))
+      dinb := Fill(8, io.rs2_dout(7))
       wea := false.B
       web := false.B
       state := state + 1.U
@@ -462,7 +475,7 @@ class DataMemory32 extends Module{
     }.elsewhen(Cat(state, io.access_type)==="b000100".U){  // unsigned byte
       addra := io.addr
       addrb := io.addr + 1.U
-      dina := io.alu_result(7,0)
+      dina := io.rs2_dout(7,0)
       dinb := 0.U
       wea := io.mem_write_en
       web := false.B
@@ -488,8 +501,8 @@ class DataMemory32 extends Module{
     }.elsewhen(Cat(state, io.access_type)==="b000001".U){// signed halfword
       addra := io.addr
       addrb := io.addr + 1.U
-      dina := io.alu_result(7,0)
-      dinb := io.alu_result(15,8)
+      dina := io.rs2_dout(7,0)
+      dinb := io.rs2_dout(15,8)
       wea := io.mem_write_en
       web := io.mem_write_en
       when(wait_state === 1.U){
@@ -505,8 +518,8 @@ class DataMemory32 extends Module{
       wea := false.B
       web := false.B
     }.elsewhen(Cat(state, io.access_type)==="b010001".U){
-      dina := Fill(8, io.alu_result(15))
-      dinb := Fill(8, io.alu_result(15))
+      dina := Fill(8, io.rs2_dout(15))
+      dinb := Fill(8, io.rs2_dout(15))
       state := state + 1.U
     }.elsewhen(Cat(state, io.access_type)==="b011001".U){
       result := Cat(Fill(16,result(15)), result(15,0))
@@ -514,8 +527,8 @@ class DataMemory32 extends Module{
     }.elsewhen(Cat(state, io.access_type)==="b000101".U){ // unsigned halfword
       addra := io.addr
       addrb := io.addr + 1.U
-      dina := io.alu_result(7,0)
-      dinb := io.alu_result(15,8)
+      dina := io.rs2_dout(7,0)
+      dinb := io.rs2_dout(15,8)
       wea := io.mem_write_en
       web := io.mem_write_en
       when(wait_state === 1.U){
@@ -540,8 +553,8 @@ class DataMemory32 extends Module{
     }.elsewhen(Cat(state, io.access_type)==="b000010".U){   // signed word
       addra := io.addr
       addrb := io.addr + 1.U
-      dina := io.alu_result(7,0)
-      dinb := io.alu_result(15,8)
+      dina := io.rs2_dout(7,0)
+      dinb := io.rs2_dout(15,8)
       wea := io.mem_write_en
       web := io.mem_write_en
       when(wait_state === 1.U){
@@ -550,24 +563,24 @@ class DataMemory32 extends Module{
         state := state + 1.U
       }
     }.elsewhen(Cat(state, io.access_type)==="b001010".U){
-      result := Cat(Fill(0,io.recv_data_b(7)), io.recv_data_b, io.recv_data_a)
+      result := Cat(io.recv_data_b, io.recv_data_a)
       state := state + 1.U
       addra := io.addr + 2.U
       addrb := io.addr + 3.U
     }.elsewhen(Cat(state, io.access_type)==="b010010".U){
-      dina := io.alu_result(23,16)
-      dinb := io.alu_result(31,24)
+      dina := io.rs2_dout(23,16)
+      dinb := io.rs2_dout(31,24)
       state := state + 1.U
     }.elsewhen(Cat(state, io.access_type)==="b011010".U){
-      result := Cat(Fill(0, io.recv_data_b(7)) ,io.recv_data_b, io.recv_data_a, result(15,0))
+      result := Cat(io.recv_data_b, io.recv_data_a, result(15,0))
       state := 0.U
       wea := false.B
       web := false.B
-    }.elsewhen(Cat(state, io.access_type)==="b011010".U){   // unsigned word
+    }.elsewhen(Cat(state, io.access_type)==="b000110".U){   // unsigned word
       addra := io.addr
       addrb := io.addr + 1.U
-      dina := io.alu_result(7,0)
-      dinb := io.alu_result(15,8)
+      dina := io.rs2_dout(7,0)
+      dinb := io.rs2_dout(15,8)
       wea := io.mem_write_en
       web := io.mem_write_en
       when(wait_state === 1.U){
@@ -581,8 +594,8 @@ class DataMemory32 extends Module{
       addra := io.addr + 2.U
       addrb := io.addr + 3.U
     }.elsewhen(Cat(state, io.access_type)==="b010110".U){
-      dina := io.alu_result(23,16)
-      dinb := io.alu_result(31,24)
+      dina := io.rs2_dout(23,16)
+      dinb := io.rs2_dout(31,24)
       state := state + 1.U
     }.elsewhen(Cat(state, io.access_type)==="b011110".U){
       result := Cat(0.U(0.W), result(31,0))
@@ -606,7 +619,7 @@ class DataMemory64 extends Module{
     val mem_write_en = Input(Bool())
     val mem_read_en = Input(Bool())
     val addr = Input(UInt(64.W))
-    val alu_result = Input(UInt(64.W))
+    val rs2_dout = Input(UInt(64.W))
     val recv_data_a = Input(UInt(8.W))
     val recv_data_b = Input(UInt(8.W))
     val access_type = Input(UInt(3.W))
@@ -621,7 +634,7 @@ class DataMemory64 extends Module{
     */
     val tick_exmem = Input(Bool())
     val result = Output(UInt(64.W))
-    val alu_result_sel = Output(Bool())
+    val enab = Output(Bool())
     val wea = Output(Bool())
     val web = Output(Bool())
     val addra = Output(UInt(64.W))
@@ -631,7 +644,7 @@ class DataMemory64 extends Module{
   })
 
   val result = RegInit(0.U(64.W))
-  val alu_result_sel = RegInit(false.B)
+  val enab = RegInit(false.B)
   val wea = RegInit(false.B)
   val web = RegInit(false.B)
   val addra = RegInit(0.U(64.W))
@@ -640,7 +653,7 @@ class DataMemory64 extends Module{
   val dinb = RegInit(0.U(8.W))
 
   io.result := result
-  io.alu_result_sel := alu_result_sel
+  io.enab := enab
   io.wea := wea
   io.web := web
   io.addra := addra
@@ -648,7 +661,7 @@ class DataMemory64 extends Module{
   io.dina := dina
   io.dinb := dinb
 
-  alu_result_sel := (io.mem_read_en | io.mem_write_en) & io.tick_exmem
+  enab := (io.mem_read_en | io.mem_write_en) & io.tick_exmem
 
   val state = RegInit(0.U(3.W))
   val wait_state = RegInit(1.U)
@@ -657,8 +670,8 @@ class DataMemory64 extends Module{
     when(Cat(state, io.access_type)==="b000000".U){ // signed byte
       addra := io.addr
       addrb := io.addr + 1.U
-      dina := io.alu_result(7,0)
-      dinb := Fill(8, io.alu_result(7))  // 将第7位（符号位）扩展8次
+      dina := io.rs2_dout(7,0)
+      dinb := Fill(8, io.rs2_dout(7))  // 将第7位（符号位）扩展8次
       wea := io.mem_write_en
       web := false.B
       when(wait_state === 1.U){
@@ -674,8 +687,8 @@ class DataMemory64 extends Module{
       wea := false.B
       web := false.B
     }.elsewhen(Cat(state, io.access_type)==="b010000".U){
-      dina := Fill(8, io.alu_result(7))
-      dinb := Fill(8, io.alu_result(7))
+      dina := Fill(8, io.rs2_dout(7))
+      dinb := Fill(8, io.rs2_dout(7))
       wea := false.B
       web := false.B
       state := state + 1.U
@@ -685,7 +698,7 @@ class DataMemory64 extends Module{
     }.elsewhen(Cat(state, io.access_type)==="b000100".U){  // unsigned byte
       addra := io.addr
       addrb := io.addr + 1.U
-      dina := io.alu_result(7,0)
+      dina := io.rs2_dout(7,0)
       dinb := 0.U
       wea := io.mem_write_en
       web := false.B
@@ -711,8 +724,8 @@ class DataMemory64 extends Module{
     }.elsewhen(Cat(state, io.access_type)==="b000001".U){// signed halfword
       addra := io.addr
       addrb := io.addr + 1.U
-      dina := io.alu_result(7,0)
-      dinb := io.alu_result(15,8)
+      dina := io.rs2_dout(7,0)
+      dinb := io.rs2_dout(15,8)
       wea := io.mem_write_en
       web := io.mem_write_en
       when(wait_state === 1.U){
@@ -728,8 +741,8 @@ class DataMemory64 extends Module{
       wea := false.B
       web := false.B
     }.elsewhen(Cat(state, io.access_type)==="b010001".U){
-      dina := Fill(8, io.alu_result(15))
-      dinb := Fill(8, io.alu_result(15))
+      dina := Fill(8, io.rs2_dout(15))
+      dinb := Fill(8, io.rs2_dout(15))
       state := state + 1.U
     }.elsewhen(Cat(state, io.access_type)==="b011001".U){
       result := Cat(Fill(48,result(15)), result(15,0))
@@ -737,8 +750,8 @@ class DataMemory64 extends Module{
     }.elsewhen(Cat(state, io.access_type)==="b000101".U){ // unsigned halfword
       addra := io.addr
       addrb := io.addr + 1.U
-      dina := io.alu_result(7,0)
-      dinb := io.alu_result(15,8)
+      dina := io.rs2_dout(7,0)
+      dinb := io.rs2_dout(15,8)
       wea := io.mem_write_en
       web := io.mem_write_en
       when(wait_state === 1.U){
@@ -763,8 +776,8 @@ class DataMemory64 extends Module{
     }.elsewhen(Cat(state, io.access_type)==="b000010".U){   // signed word
       addra := io.addr
       addrb := io.addr + 1.U
-      dina := io.alu_result(7,0)
-      dinb := io.alu_result(15,8)
+      dina := io.rs2_dout(7,0)
+      dinb := io.rs2_dout(15,8)
       wea := io.mem_write_en
       web := io.mem_write_en
       when(wait_state === 1.U){
@@ -778,19 +791,19 @@ class DataMemory64 extends Module{
       addra := io.addr + 2.U
       addrb := io.addr + 3.U
     }.elsewhen(Cat(state, io.access_type)==="b010010".U){
-      dina := io.alu_result(23,16)
-      dinb := io.alu_result(31,24)
+      dina := io.rs2_dout(23,16)
+      dinb := io.rs2_dout(31,24)
       state := state + 1.U
     }.elsewhen(Cat(state, io.access_type)==="b011010".U){
       result := Cat(Fill(32, io.recv_data_b(7)) ,io.recv_data_b, io.recv_data_a, result(15,0))
       state := 0.U
       wea := false.B
       web := false.B
-    }.elsewhen(Cat(state, io.access_type)==="b011010".U){   // unsigned word
+    }.elsewhen(Cat(state, io.access_type)==="b000110".U){   // unsigned word
       addra := io.addr
       addrb := io.addr + 1.U
-      dina := io.alu_result(7,0)
-      dinb := io.alu_result(15,8)
+      dina := io.rs2_dout(7,0)
+      dinb := io.rs2_dout(15,8)
       wea := io.mem_write_en
       web := io.mem_write_en
       when(wait_state === 1.U){
@@ -804,8 +817,8 @@ class DataMemory64 extends Module{
       addra := io.addr + 2.U
       addrb := io.addr + 3.U
     }.elsewhen(Cat(state, io.access_type)==="b010110".U){
-      dina := io.alu_result(23,16)
-      dinb := io.alu_result(31,24)
+      dina := io.rs2_dout(23,16)
+      dinb := io.rs2_dout(31,24)
       state := state + 1.U
     }.elsewhen(Cat(state, io.access_type)==="b011110".U){
       result := Cat(0.U(32.W), result(31,0))
@@ -813,8 +826,8 @@ class DataMemory64 extends Module{
     }.elsewhen(Cat(state, io.access_type)==="b000011".U){ // double
       addra := io.addr
       addrb := io.addr + 1.U
-      dina := io.alu_result(7,0)
-      dinb := io.alu_result(15,8)
+      dina := io.rs2_dout(7,0)
+      dinb := io.rs2_dout(15,8)
       wea := io.mem_write_en
       web := io.mem_write_en
       when(wait_state === 1.U){
@@ -828,8 +841,8 @@ class DataMemory64 extends Module{
       addra := io.addr + 2.U
       addrb := io.addr + 3.U
     }.elsewhen(Cat(state, io.access_type)==="b010011".U){
-      dina := io.alu_result(23,16)
-      dinb := io.alu_result(31,24)
+      dina := io.rs2_dout(23,16)
+      dinb := io.rs2_dout(31,24)
       state := state + 1.U
     }.elsewhen(Cat(state, io.access_type)==="b011011".U){
       result := Cat(io.recv_data_b, io.recv_data_a, result(15,0))
@@ -837,19 +850,19 @@ class DataMemory64 extends Module{
       addra := io.addr + 4.U
       addrb := io.addr + 5.U
     }.elsewhen(Cat(state, io.access_type)==="b100011".U){
-      dina := io.alu_result(39,32)
-      dinb := io.alu_result(47,40)
+      dina := io.rs2_dout(39,32)
+      dinb := io.rs2_dout(47,40)
       state := state + 1.U
     }.elsewhen(Cat(state, io.access_type)==="b101011".U){
       result := Cat(io.recv_data_b, io.recv_data_a, result(31,0))
       state := state + 1.U
       addra := io.addr + 6.U
       addrb := io.addr + 7.U
-    }.elsewhen(Cat(state, io.access_type)==="b101011".U){
-      dina := io.alu_result(55,48)
-      dinb := io.alu_result(63,56)
+    }.elsewhen(Cat(state, io.access_type)==="b110011".U){
+      dina := io.rs2_dout(55,48)
+      dinb := io.rs2_dout(63,56)
       state := state + 1.U
-    }.elsewhen(Cat(state, io.access_type)==="b101011".U){
+    }.elsewhen(Cat(state, io.access_type)==="b111011".U){
       result := Cat(io.recv_data_b, io.recv_data_a, result(47,0))
       state := 0.U
       wea := false.B
@@ -868,7 +881,7 @@ class DataMemory(Width:Int = 32) extends Module{
     val mem_write_en = Input(Bool())
     val mem_read_en = Input(Bool())
     val addr = Input(UInt(Width.W))
-    val alu_result = Input(UInt(Width.W))
+    val rs2_dout = Input(UInt(Width.W))
     val recv_data_a = Input(UInt(8.W))
     val recv_data_b = Input(UInt(8.W))
     val access_type = Input(UInt(3.W))
@@ -883,7 +896,7 @@ class DataMemory(Width:Int = 32) extends Module{
     */
     val tick_exmem = Input(Bool())
     val result = Output(UInt(Width.W))
-    val alu_result_sel = Output(Bool())
+    val enab = Output(Bool())
     val wea = Output(Bool())
     val web = Output(Bool())
     val addra = Output(UInt(Width.W))
@@ -897,14 +910,14 @@ class DataMemory(Width:Int = 32) extends Module{
     dataMemory32.io.mem_write_en := io.mem_write_en
     dataMemory32.io.mem_read_en := io.mem_read_en
     dataMemory32.io.addr := io.addr
-    dataMemory32.io.alu_result := io.alu_result
+    dataMemory32.io.rs2_dout := io.rs2_dout
     dataMemory32.io.recv_data_a := io.recv_data_a
     dataMemory32.io.recv_data_b := io.recv_data_b
     dataMemory32.io.access_type := io.access_type
     dataMemory32.io.tick_exmem := io.tick_exmem
 
     io.result := dataMemory32.io.result
-    io.alu_result_sel := dataMemory32.io.alu_result_sel
+    io.enab := dataMemory32.io.enab
     io.wea := dataMemory32.io.wea
     io.web := dataMemory32.io.web
     io.addra := dataMemory32.io.addra
@@ -916,14 +929,14 @@ class DataMemory(Width:Int = 32) extends Module{
     dataMemory64.io.mem_write_en := io.mem_write_en
     dataMemory64.io.mem_read_en := io.mem_read_en
     dataMemory64.io.addr := io.addr
-    dataMemory64.io.alu_result := io.alu_result
+    dataMemory64.io.rs2_dout := io.rs2_dout
     dataMemory64.io.recv_data_a := io.recv_data_a
     dataMemory64.io.recv_data_b := io.recv_data_b
     dataMemory64.io.access_type := io.access_type
     dataMemory64.io.tick_exmem := io.tick_exmem
 
     io.result := dataMemory64.io.result
-    io.alu_result_sel := dataMemory64.io.alu_result_sel
+    io.enab := dataMemory64.io.enab
     io.wea := dataMemory64.io.wea
     io.web := dataMemory64.io.web
     io.addra := dataMemory64.io.addra
